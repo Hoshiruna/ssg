@@ -6,7 +6,7 @@
 		{
 			"label": "Build (everything)",
 			"type": "shell",
-			"command": "build_windows.bat",
+			"command": "build_windows.bat all",
 			"group": "build",
 			"problemMatcher": "$msCompile",
 			"options": {
@@ -20,7 +20,7 @@
 		{
 			"label": "Build regular binary (Debug)",
 			"type": "shell",
-			"command": "build_windows.bat bin/GIAN07d.exe",
+			"command": "build_windows.bat Debug",
 			"group": "build",
 			"problemMatcher": "$msCompile",
 			"options": {
@@ -33,7 +33,7 @@
 		{
 			"label": "Build regular binary (Release)",
 			"type": "shell",
-			"command": "build_windows.bat bin/GIAN07.exe",
+			"command": "build_windows.bat Release",
 			"group": "build",
 			"problemMatcher": "$msCompile",
 			"options": {
@@ -46,7 +46,7 @@
 		{
 			"label": "Build Windows 98 binary (Debug)",
 			"type": "shell",
-			"command": "build_windows.bat bin/GIAN07_win98d.exe",
+			"command": "build_windows_tup.bat bin/GIAN07_win98d.exe",
 			"group": "build",
 			"problemMatcher": "$msCompile",
 			"options": {
@@ -59,7 +59,7 @@
 		{
 			"label": "Build Windows 98 binary (Release)",
 			"type": "shell",
-			"command": "build_windows.bat bin/GIAN07_win98.exe",
+			"command": "build_windows_tup.bat bin/GIAN07_win98.exe",
 			"group": "build",
 			"problemMatcher": "$msCompile",
 			"options": {

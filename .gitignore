@@ -2,4 +2,6 @@
 .vscode/settings.json
 bin/
 obj/
+out/
 tup.config
+.vs/

@@ -1,0 +1,85 @@
+{
+	"version": 6,
+	"cmakeMinimumRequired": {
+		"major": 4,
+		"minor": 0,
+		"patch": 3
+	},
+	"configurePresets": [
+		{
+			"name": "ninja-multi",
+			"hidden": true,
+			"generator": "Ninja Multi-Config",
+			"binaryDir": "${sourceDir}/out/build/${presetName}",
+			"cacheVariables": {
+				"CMAKE_CONFIGURATION_TYPES": "Debug;Release",
+				"CMAKE_DEFAULT_BUILD_TYPE": "Release",
+				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+			}
+		},
+		{
+			"name": "windows-msvc",
+			"displayName": "Windows (MSVC x86 + Ninja)",
+			"inherits": "ninja-multi",
+			"architecture": {
+				"value": "x86",
+				"strategy": "external"
+			},
+			"toolset": {
+				"value": "host=x64",
+				"strategy": "external"
+			},
+			"environment": {
+				"CC": "cl",
+				"CXX": "cl"
+			},
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Windows"
+			},
+			"vendor": {
+				"microsoft.com/VisualStudioSettings/CMake/1.0": {
+					"hostOS": ["Windows"],
+					"intelliSenseMode": "windows-msvc-x86"
+				}
+			}
+		},
+		{
+			"name": "linux",
+			"displayName": "Linux (Ninja)",
+			"inherits": "ninja-multi",
+			"condition": {
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Linux"
+			}
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "windows-debug",
+			"configurePreset": "windows-msvc",
+			"configuration": "Debug",
+			"targets": ["GIAN07"]
+		},
+		{
+			"name": "windows-release",
+			"configurePreset": "windows-msvc",
+			"configuration": "Release",
+			"targets": ["GIAN07"]
+		},
+		{
+			"name": "linux-debug",
+			"configurePreset": "linux",
+			"configuration": "Debug",
+			"targets": ["GIAN07"]
+		},
+		{
+			"name": "linux-release",
+			"configurePreset": "linux",
+			"configuration": "Release",
+			"targets": ["GIAN07"]
+		}
+	]
+}
