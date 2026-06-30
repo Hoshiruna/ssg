@@ -2,66 +2,85 @@
 
 ## Building
 
-This project uses [Tup](https://gittup.org/tup/) as its build system, so install a fitting version for your operating system.
+The modern Windows and Linux binaries use [CMake](https://cmake.org/) with
+[Ninja](https://ninja-build.org/). CMake and Ninja manage the build; the
+actual compiler is MSVC on Windows and GCC or Clang on Linux.
+
+The minimum supported versions are:
+
+* CMake 4.0.3
+* Ninja 1.11
+* Visual Studio 2022 17.6, GCC 15, or Clang 18.1.2
+
+The older Tup build remains available for the Windows 98-compatible binary.
 
 All binaries will be put into the `bin/` subdirectory.
 
 ### Windows
 
-Visual Studio ≥2022 is the only compiler supported right now.
-However, since IDE integration is horribly broken for both Makefile and directory projects, we strongly recommend literally *anything else* to edit the code.
-This repo includes a ready-to-use configuration for Visual Studio Code; If you want to use this editor, make sure to install the default recommended C++ extensions when asked.
+MSVC is the supported Windows compiler. The build is 32-bit, so commands must
+be run from Visual Studio's *x64_x86 Cross Tools Command Prompt*.
 
 To build:
 
 1. Install [Git for Windows](https://gitforwindows.org/).
-2. Install Visual Studio Community ≥2022, with the *Desktop development for C++* workload.\
+2. Install Visual Studio Community 2022, with the *Desktop development for C++* workload.\
    If you haven't already installed the IDE for other projects and don't plan to, you can install only the command-line compilers via the [Build Tools installer](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022).
-3. Make sure that `tup.exe` and its DLLs are somewhere in your `PATH`.
+3. Install CMake and Ninja and make sure both are in `PATH`.
+4. Open the *x64_x86 Cross Tools Command Prompt* and navigate to this checkout.
+5. Build both configurations:
 
-4. Open Visual Studio's *x64_x86 Cross Tools Command Prompt*.
-5. Navigate to the checkout directory of this repository.
-6. Invoke `build_windows.bat` in your way of choice:
-   * If you use Visual Studio Code, open the editor from this command-line environment:
+   ```batch
+   build_windows.bat
+   ```
 
-     ```batch
-     code .
-     ```
+   Pass `Debug` or `Release` to build only one configuration.
 
-     Then, you can run the build task with the default `Ctrl-Shift-B` keybinding.
+The equivalent direct preset commands are:
 
-   * Or you can always run `build_windows.bat` directly from this shell.
+```batch
+cmake --preset windows-msvc
+cmake --build --preset windows-release
+```
+
+The repository's Visual Studio Code tasks use these CMake presets. Open VS Code
+from the same compiler prompt:
+
+```batch
+code .
+```
+
+#### Windows 98 binary
+
+The vintage target still uses Tup and its specialized dependency build:
+
+```batch
+build_windows_tup.bat bin/GIAN07_win98.exe
+build_windows_tup.bat bin/GIAN07_win98d.exe
+```
 
 ### Linux
 
-The build is driven by `build_linux.sh`, which sets up the required submodules and environment variables for Tup.
+Install CMake, Ninja, pkg-config, and the development packages for SDL 3,
+PangoCairo, Fontconfig, WebP, Ogg, and Vorbis.
 
-Both GCC ≥15 and Clang ≥18 are supported. The build process honors the `CC` environment variable or otherwise falls back on your system's default C/C++ compiler indicated by the `cc` binary, picking the respective toolchain depending on that compiler's `--version` string.
-
-Use `install_linux.sh` to copy a compiled release build to its standard install locations.
-
-### Filtering build outputs
-
-By default, the process builds both Debug and Release configurations of all binaries.
-If you only need a few of them and want to speed up the build process, you can specify any number of target binary filenames as a parameter to the build batch file.
-
-On Windows:
+The build honors the `CC` and `CXX` environment variables when the preset is
+configured for the first time. Build both Debug and Release with:
 
 ```sh
-build_windows.bat bin/GIAN07.exe  # builds only the modern Release binary
-build_windows.bat bin/GIAN07d.exe # builds only the modern Debug binary
-build_windows.bat                 # builds all binaries, including the vintage ones
+./build_linux.sh
 ```
 
-The Visual Studio Code configuration contains build tasks for all five possibilities.
-
-On Linux:
+Pass `Debug` or `Release` to build only one configuration. The equivalent
+direct preset commands are:
 
 ```sh
-./build_linux.sh bin/GIAN07  # builds only the Release binary
-./build_linux.sh bin/GIAN07d # builds only the Debug binary
-./build_linux.sh             # builds both Debug and Release binaries
+cmake --preset linux
+cmake --build --preset linux-release
 ```
+
+Use `install_linux.sh` to copy a compiled release build to its standard install
+locations.
 
 ## Debugging (Windows only)
 
