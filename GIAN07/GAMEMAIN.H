@@ -7,6 +7,8 @@
 #define PBGWIN_GAMEMAIN_H		"GAMEMAIN : Version 0.01 : Update 2000/02/23"
 //#pragma message(PBGWIN_GAMEMAIN_H)
 
+import std.compat;
+
 
 
 ///// [更新履歴] /////
@@ -34,13 +36,15 @@ extern bool IsDemoplay;
 extern void(*GameMain)(bool& quit);
 
 bool WeaponSelectInit(bool ExStg);
+bool PracticeStartInit(uint8_t stage);
 bool GameInit(void(*NextProc)(bool& quit));	// ゲームの初期化をする
 extern void GameRestart(void);	// ゲームを再開する(ESC 抜けから)
+extern void GameQuit(void);
 extern bool GameExit(bool bNeedChgMusic = true);	// ゲームから抜ける
 extern void GameOverInit(void);	// ゲームオーバーの前処理
 extern void GameContinue(void);	// コンティニューを行う場合
 
-extern bool GameReplayInit(int Stage);	// リプレイ用の初期化を行う
+extern bool GameReplayInit(size_t slot, uint8_t stage);
 
 extern bool SProjectInit(void);	// 西方Ｐｒｏｊｅｃｔ表示の初期化
 
@@ -50,5 +54,9 @@ extern bool NameRegistInit(bool bNeedChgMusic);	// お名前入力の初期化
 extern bool ScoreNameInit(void);	// お名前表示画面
 
 extern bool GameNextStage(void);	// 次のステージに移行する
+extern void GameReplayPlaybackComplete(void);
+extern void GameReplayPracticeComplete(void);
+extern void GameReplayNormalComplete(void);
+extern void GameReplayExtraComplete(void);
 
 #endif

@@ -45,15 +45,12 @@ typedef struct tagDEMOPLAY_INFO{
 void DemoplayInit(void);	// デモプレイデータの準備
 
 // デモプレイデータを保存する
-// Returns `true` if the replay is over and should be saved via either
-// DemoplaySave() or ReplaySave().
+// Returns `true` if the attract demo is over and should be saved.
 bool DemoplayRecord(INPUT_BITS key);
 
 void DemoplaySaveDemo(void);	// デモプレイデータをファイルに書き込む
-void DemoplaySaveReplay(void);	// リプレイデータをファイルに書き込む
 
 bool DemoplayLoadDemo(int stage);	// デモプレイデータをロードする
-bool DemoplayLoadReplay(int stage);	// リプレイデータをロードする
 INPUT_BITS DemoplayMove(void);	// Key_Data を返す
 void DemoplayCleanup(void);	// デモプレイロードの事後処理
 

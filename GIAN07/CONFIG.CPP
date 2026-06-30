@@ -111,6 +111,11 @@ template <typename T> concept VERSION = requires(T t) {
 	{ t.Options } -> CONFIG_OPTION;
 };
 
+// Kept only to consume the replay toggle/stage byte in older config files.
+static CONFIG_OPTION_VALUE<uint8_t> LegacyStageSelect = {
+	0, CONFIG_DATA::U8Below<STAGE_MAX>
+};
+
 // Original 秋霜CFG.DAT
 const struct VERSION_ORIGINAL {
 	static constexpr auto FN = u8"秋霜CFG.DAT";
@@ -151,7 +156,7 @@ const struct VERSION_ORIGINAL {
 		CheckSum,
 
 		// ワケ有りでここにいるのです(チェックサムの範囲外)
-		ConfigDat.StageSelect,
+		LegacyStageSelect,
 
 		PaddingByte,
 		PaddingByte,
@@ -197,7 +202,7 @@ const struct VERSION_00 {
 		ConfigDat.PadShift,
 		ConfigDat.PadCancel,
 		ConfigDat.ExtraStgFlags,
-		ConfigDat.StageSelect
+		LegacyStageSelect
 	);
 } VERSION_00;
 
@@ -359,6 +364,8 @@ extern void ConfigLoad()
 // コンフィグの内容を保存する //
 extern void ConfigSave(void)
 {
+	LegacyStageSelect.v = 0;
+
 	// Backwards compatibility with 秋霜CFG.DAT
 	VERSION_ORIGINAL.BitDepth8Or16.v = ((ConfigDat.BitDepth.v.value() > 16)
 		? BITDEPTHS::find(16)

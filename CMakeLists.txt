@@ -57,6 +57,12 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_DEBUG_POSTFIX "d")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Standard-library modules must be compiled with the same encoding environment
+# as every translation unit that imports them.
+if(MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
+endif()
+
 # Keep compatibility with the project's existing resource and launch layout.
 # The generator expression prevents multi-config generators from appending a
 # configuration subdirectory.
@@ -150,7 +156,6 @@ target_link_libraries(GIAN07 PRIVATE ssg_dependencies)
 
 if(MSVC)
 	target_compile_options(GIAN07 PRIVATE
-		/utf-8
 		/EHsc
 		"$<$<CONFIG:Release>:/Zi>"
 	)

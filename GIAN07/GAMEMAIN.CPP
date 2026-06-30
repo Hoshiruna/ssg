@@ -13,6 +13,8 @@
 #include "LENS.H"
 #include "LEVEL.H"
 #include "MUSIC.H"
+#include "REPLAY.H"
+#include "REPLAYUI.H"
 #include "SCORE.H"
 #include "WindowCtrl.h" // ウィンドウ定義
 #include "WindowSys.h"
@@ -23,7 +25,6 @@
 #include "game/snd.h"
 #include "game/ut_math.h"
 #include "platform/time.h"
-#include "obj/version.h"
 
 constexpr WINDOW_POINT MAIN_WINDOW_TOPLEFT = { 400, 250 };
 
@@ -35,8 +36,7 @@ struct LINE {
 
 LINE Line[1];
 
-constexpr std::string_view BUILD_LABEL = "BUILD";
-constexpr Narrow::string_view BUILD_VALUE = (" " VERSION_TAG);
+constexpr Narrow::string_view BUILD_VALUE = "Enhanced Version beta 1";
 
 void Init(void)
 {
@@ -47,21 +47,10 @@ void Init(void)
 
 void Render(PIXEL_COORD top)
 {
-	// Matches the font rendered by GrpPutScore().
 	const auto gradient_func = [](PIXEL_COORD y) -> uint8_t {
 		return ((y <= 3) ? 254 : (y <= 6) ? 220 : 180);
 	};
 
-	constexpr auto BUILD_LABEL_EXTENT = GrpExtent5(BUILD_LABEL);
-	const WINDOW_POINT build_label_topleft = {{
-		.x = (Line[0].left - BUILD_LABEL_EXTENT.w),
-
-		// MS Gothic 10 is actually 7 pixels high and starts at a Y coordinate
-		// of 2.
-		.y = (top + 2 + 7 - BUILD_LABEL_EXTENT.h)
-	}};
-
-	GrpPut55(build_label_topleft, BUILD_LABEL);
 	TextObj.Render(
 		{ Line[0].left, top },
 		Line[0].trr,
@@ -98,6 +87,7 @@ void DemoProc(bool&);	// デモプレイ
 void NameRegistProc(bool&);	// お名前入力
 
 void ReplayProc(bool&);
+void ReplaySaveProc(bool&);
 
 
 bool SProjectInit(void);	// 西方Ｐｒｏｊｅｃｔ初期化部
@@ -122,6 +112,84 @@ uint8_t CurrentLevel()
 }
 
 bool InputLocked;
+REPLAY_MODE SelectedRunMode = REPLAY_MODE::NORMAL;
+uint8_t SelectedStartStage = 1;
+
+static void ReplaySaveBegin(void (*done)(void))
+{
+	ReplayUIOpenSave(done);
+	GameMain = ReplaySaveProc;
+}
+
+static void ReplaySaveThenTitle(void)
+{
+	GameExit(true);
+}
+
+static void ReplaySaveThenGameOverChoice(void)
+{
+	if(Viv.credit == 0) {
+		NameRegistInit(true);
+	} else {
+		ContinueWindow.Open({ 250, 200 }, 0);
+		GameMain = GameOverProc;
+	}
+}
+
+static void ReplaySaveThenEnding(void)
+{
+	EndingInit();
+}
+
+static void ReplaySaveThenName(void)
+{
+	NameRegistInit(true);
+}
+
+extern void GameReplayPlaybackComplete(void)
+{
+	const bool synchronized = ReplayPlaybackFinish();
+	if(!synchronized) {
+		const auto error = std::string(ReplayLastError());
+		GameExit(true);
+		ReplayUIShowMessage(error.c_str());
+	} else {
+		GameExit(true);
+	}
+}
+
+extern void GameReplayPracticeComplete(void)
+{
+	ReplayRecordFinish(REPLAY_FINISH::CLEAR);
+	if(ReplayRecordReady() || ReplayRecordOverflowed()) {
+		ReplaySaveBegin(ReplaySaveThenTitle);
+	} else {
+		ReplaySaveThenTitle();
+	}
+}
+
+extern void GameReplayNormalComplete(void)
+{
+	ReplayRecordFinish(REPLAY_FINISH::CLEAR);
+	if(GameStage == STAGE_MAX) {
+		GameStage = (STAGE_MAX + 1);
+	}
+	if(ReplayRecordReady() || ReplayRecordOverflowed()) {
+		ReplaySaveBegin(ReplaySaveThenEnding);
+	} else {
+		ReplaySaveThenEnding();
+	}
+}
+
+extern void GameReplayExtraComplete(void)
+{
+	ReplayRecordFinish(REPLAY_FINISH::CLEAR);
+	if(ReplayRecordReady() || ReplayRecordOverflowed()) {
+		ReplaySaveBegin(ReplaySaveThenName);
+	} else {
+		ReplaySaveThenName();
+	}
+}
 
 
 // スコアネーム表示の準備を行う //
@@ -565,10 +633,26 @@ bool WeaponSelectInit(bool ExStg)
 	GameMain = WeaponSelectProc;
 	if(ExStg) {
 		GameStage = GRAPH_ID_EXSTAGE;
+		SelectedRunMode = REPLAY_MODE::EXTRA;
+		SelectedStartStage = GRAPH_ID_EXSTAGE;
+	} else {
+		SelectedRunMode = REPLAY_MODE::NORMAL;
+		SelectedStartStage = 1;
 	}
 
 	VivTemp = Viv;
 
+	return true;
+}
+
+bool PracticeStartInit(uint8_t stage)
+{
+	if(!WeaponSelectInit(stage == GRAPH_ID_EXSTAGE)) {
+		return false;
+	}
+	SelectedRunMode = REPLAY_MODE::PRACTICE;
+	SelectedStartStage = stage;
+	GameStage = stage;
 	return true;
 }
 
@@ -579,10 +663,8 @@ bool GameInit(void(*NextProc)(bool& quit))
 		BGM_FadeOut(240);
 		MTitleInit();
 	}
-	if(NextProc == GameProc) {
+	if((NextProc == GameProc) || (NextProc == ReplayProc)) {
 		// ウィンドウの表示位置を設定する //
-		// Replays don't show dialog, so this is the only place where we need
-		// to do this.
 		const auto flags = MSG_WINDOW_FLAGS::WITH_FACE;
 		if(ConfigDat.GraphFlags.v & GRPF_WINDOW_UPPER) {
 			MWinInit({ 128,  16, (640 - 128),  96 }, flags);
@@ -590,9 +672,10 @@ bool GameInit(void(*NextProc)(bool& quit))
 			MWinInit({ 128, 400, (640 - 128), 480 }, flags);
 		}
 
-		// These windows can also only show up outside of replays.
-		InitExitWindow();
-		InitContinueWindow();
+		if(NextProc == GameProc) {
+			InitExitWindow();
+			InitContinueWindow();
+		}
 	}
 	GrpBackend_SetClip(PLAYFIELD_CLIP);
 	GameMain = NextProc;
@@ -625,24 +708,29 @@ extern bool GameNextStage(void)
 		return false;
 	}
 
+	if(ReplayPlaybackActive()) {
+		if(!ReplayPlaybackStageBegin(GameStage)) {
+			const auto error = std::string(ReplayLastError());
+			GameExit(true);
+			ReplayUIShowMessage(error.c_str());
+			return false;
+		}
+	} else if(ReplayRecordActive()) {
+		ReplayRecordStageTransition(GameStage);
+	}
+
 	return true;
 }
 
 
 // リプレイ用の初期化を行う //
-extern bool GameReplayInit(int Stage)
+extern bool GameReplayInit(size_t slot, uint8_t stage)
 {
 	MaidSet();
 
-//	rnd_seed_set(Time_SteadyTicksMS());
-	GameStage = Stage;
-
-	if(!DemoplayLoadReplay(GameStage)) {
-		// DebugOut(u8"デモプレイデータが存在せず");
+	if(!ReplayPlaybackBegin(slot, stage)) {
 		return false;
 	}
-
-	PlayRankReset();
 
 	GrpBackend_Clear();
 	Grp_Flip();
@@ -650,14 +738,15 @@ extern bool GameReplayInit(int Stage)
 
 	if(!LoadGraph(GameStage)){
 		DebugOut(u8"GRAPH.DAT が破壊されています");
-		DemoplayCleanup();
+		ReplayPlaybackAbort();
 		return false;
 	}
 	if(!LoadStageData(GameStage)){
 		DebugOut(u8"ENEMY.DAT が破壊されています");
-		DemoplayCleanup();
+		ReplayPlaybackAbort();
 		return false;
 	}
+	ReplayPlaybackApplyStart();
 
 	if(GameStage == GRAPH_ID_EXSTAGE){
 		Viv.credit = 0;
@@ -672,22 +761,34 @@ void ReplayProc(bool&)
 
 	ExTimer = (ExTimer+1)%128;
 
-	if(Key_Data != KEY_ESC) {
-		Key_Data = DemoplayMove();
-	}
-
-	// ＥＳＣが押されたら即、終了 //
 	if(Key_Data & KEY_ESC){
-		DemoplayCleanup();
+		ReplayPlaybackAbort();
 		GameExit();
 		return;
 	}
 
+	if(ReplayPlaybackInputExhausted()) {
+		const bool synchronized = ReplayPlaybackFinish();
+		const auto error = std::string(ReplayLastError());
+		GameExit();
+		if(!synchronized) {
+			ReplayUIShowMessage(error.c_str());
+		}
+		return;
+	}
+	Key_Data = ReplayPlaybackInput();
 	GameMove();
 
 	if(GameMain != ReplayProc){
-		DemoplayCleanup();	// 後始末
-		GameExit();					// 強制終了させる(ゲームオーバー対策)
+		if(!ReplayPlaybackActive()) {
+			return;
+		}
+		const bool synchronized = ReplayPlaybackFinish();
+		const auto error = std::string(ReplayLastError());
+		GameExit();
+		if(!synchronized) {
+			ReplayUIShowMessage(error.c_str());
+		}
 		return;
 	}
 
@@ -837,6 +938,18 @@ extern void GameRestart(void)
 	GameMain = GameProc;
 }
 
+extern void GameQuit(void)
+{
+	if(ReplayRecordActive()) {
+		ReplayRecordFinish(REPLAY_FINISH::QUIT);
+	}
+	if(ReplayRecordReady() || ReplayRecordOverflowed()) {
+		ReplaySaveBegin(ReplaySaveThenTitle);
+	} else {
+		GameExit(true);
+	}
+}
+
 // ゲームから抜ける //
 extern bool GameExit(bool bNeedChgMusic)
 {
@@ -897,6 +1010,8 @@ extern void GameOverInit(void)
 // コンティニューを行う場合
 extern void GameContinue(void)
 {
+	ReplayRecordDiscard();
+
 	Viv.evade_sum = 0;
 	Viv.left      = ConfigDat.PlayerStock.v;
 	Viv.score     = (Viv.score%10 + 1);
@@ -918,22 +1033,13 @@ void GameProc(bool&)
 	}
 #endif
 
-	// リプレイ時の保存処理 //
-	if(ConfigDat.StageSelect.v && DemoplayRecord(Key_Data)) {
-		DemoplaySaveReplay();
-	}
-
 	if(Key_Data & KEY_ESC){
-		if(ConfigDat.StageSelect.v) {
-			DemoplaySaveReplay();
-			GameExit(true);
-			return;
-		}
-
 		ExitWindow.Open({ 250, 150 }, 1);
 		GameMain = PauseProc;
 		return;
 	}
+
+	ReplayRecordFrame(Key_Data);
 /*
 	static BYTE count;
 	if(count) count--;
@@ -947,7 +1053,12 @@ void GameProc(bool&)
 	}
 */
 	GameMove();
-	if(GameMain != GameProc) return;
+	if(GameMain != GameProc) {
+		if((GameMain == GameOverProc0) && ReplayRecordActive()) {
+			ReplayRecordFinish(REPLAY_FINISH::GAME_OVER);
+		}
+		return;
+	}
 
 	if(IsDraw()){
 		GameDraw();
@@ -982,14 +1093,8 @@ void GameOverProc0(bool&)
 			break;
 		}
 
-		// ステージセレクトが有効な場合 //
-		if(ConfigDat.StageSelect.v) {
-			DemoplaySaveReplay();
-			if(GameStage == GRAPH_ID_EXSTAGE) {
-				NameRegistInit(true);
-			} else {
-				GameExit(true);
-			}
+		if(ReplayRecordReady() || ReplayRecordOverflowed()) {
+			ReplaySaveBegin(ReplaySaveThenGameOverChoice);
 			return;
 		}
 
@@ -1027,6 +1132,22 @@ void GameOverProc(bool&)
 			constexpr PIXEL_LTRB rc = PIXEL_LTWH{ 288, 80, 24, 8 };
 			GrpSurface_Blit({ 128, 470 }, SURFACE_ID::SYSTEM, rc);
 		}*/
+		Grp_Flip();
+	}
+}
+
+void ReplaySaveProc(bool&)
+{
+	ReplayUIMove();
+	if(GameMain != ReplaySaveProc) {
+		return;
+	}
+
+	if(IsDraw()) {
+		GameDraw();
+		GrpBackend_SetClip(GRP_RES_RECT);
+		ReplayUIDraw();
+		GrpBackend_SetClip(PLAYFIELD_CLIP);
 		Grp_Flip();
 	}
 }
@@ -1139,30 +1260,23 @@ void WeaponSelectProc(bool&)
 			Snd_SEPlay(SOUND_ID_SELECT);
 			if(GameStage != GRAPH_ID_EXSTAGE){
 #ifdef PBG_DEBUG
-				GameStage = DebugDat.StgSelect;
-				if(GameStage==2) Viv.exp = 160;
-				if(GameStage>=3) Viv.exp = 255;
-				if(DebugDat.DemoSave) DemoplayInit();
-#else
-				// リプレイ用の処理を追加 //
-				if(ConfigDat.StageSelect.v) {
-					GameStage = ConfigDat.StageSelect.v;
+				if(DebugDat.DemoSave) {
+					GameStage = DebugDat.StgSelect;
 					if(GameStage==2) Viv.exp = 160;
 					if(GameStage>=3) Viv.exp = 255;
 					DemoplayInit();
-				}
-				else{
-					GameStage = 1;
-				}
+				} else
 #endif
+				{
+					GameStage = SelectedStartStage;
+					if(GameStage==2) Viv.exp = 160;
+					if(GameStage>=3) Viv.exp = 255;
+				}
 			}
 			else{
 				Viv.credit = 0;
 				Viv.left   = EXTRA_LIVES;
 				Viv.exp    = 255;
-				if(ConfigDat.StageSelect.v) {
-					DemoplayInit();
-				}
 			}
 
 			if(!LoadGraph(GameStage)){
@@ -1174,6 +1288,8 @@ void WeaponSelectProc(bool&)
 				return;
 			}
 
+			ReplayRecordBegin(SelectedRunMode);
+			ReplayRecordStageBegin(GameStage);
 			GameInit(GameProc);
 		return;
 
@@ -1315,6 +1431,7 @@ void TitleProc(bool& quit)
 	if(Key_Data==0) DemoTimer += 1;
 	else            DemoTimer  = 0;
 	if(MainWindow.SelectDepth!=0) DemoTimer = 0;
+	if(ReplayUIActive()) DemoTimer = 0;
 
 	if(DemoTimer==60*10){	// 60*3
 		DemoInit();
@@ -1325,12 +1442,19 @@ void TitleProc(bool& quit)
 		? &BGMPackWindow
 		: &MainWindow
 	);
-	CWinMove(window_active);
-	MWinHelp(window_active);
+	if(ReplayUIActive()) {
+		ReplayUIMove();
+		if(auto* replay_window = ReplayUIWindow()) {
+			MWinHelp(replay_window);
+		}
+	} else {
+		CWinMove(window_active);
+		MWinHelp(window_active);
+	}
 	MWinMove();
 	if(GameMain!=TitleProc) return;
 
-	if(MainWindow.State==CWIN_DEAD){
+	if(!ReplayUIActive() && MainWindow.State==CWIN_DEAD){
 		switch(MainWindow.Select[0]){
 			case(0):
 				WeaponSelectInit(false);
@@ -1343,7 +1467,7 @@ void TitleProc(bool& quit)
 	}
 
 	// Silly hack for excessively tall submenus...
-	if(const auto *active_menu = CWinSearchActive(&MainWindow)) {
+	if(!ReplayUIActive()) if(const auto *active_menu = CWinSearchActive(&MainWindow)) {
 		MainWindow.y = MAIN_WINDOW_TOPLEFT.y;
 		if(active_menu->NumItems > 9) {
 			MainWindow.y -= ((active_menu->NumItems - 9) * CWIN_ITEM_H);
@@ -1355,7 +1479,11 @@ void TitleProc(bool& quit)
 		GrpSurface_Blit({ 0, 42 }, SURFACE_ID::TITLE, src);
 		// GrpSurface_Blit({ (320 - 175), 77 }, SURFACE_ID::TITLE, src);
 		MWinDraw();
-		CWinDraw(window_active);
+		if(ReplayUIActive()) {
+			ReplayUIDraw();
+		} else {
+			CWinDraw(window_active);
+		}
 
 		// Placing this here avoids flickering with the Vulkan backend if any
 		// of the above windows had to re-render text?!
@@ -1396,7 +1524,12 @@ void GameMove(void)
 {
 	MWinMove();
 
+	const auto stage_before = GameStage;
+	const auto proc_before = GameMain;
 	ScrollMove();
+	if((GameStage != stage_before) || (GameMain != proc_before)) {
+		return;
+	}
 
 	BossMove();
 	enemy_move();

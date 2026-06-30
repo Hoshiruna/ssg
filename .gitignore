@@ -5,3 +5,5 @@ obj/
 out/
 tup.config
 .vs/
+replay/*.rep
+replay/*.rep.tmp

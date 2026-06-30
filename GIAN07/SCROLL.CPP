@@ -6,6 +6,7 @@
 #include "SCROLL.H"
 #include "CONFIG.H"
 #include "DEMOPLAY.H"
+#include "REPLAY.H"
 #include "GIAN.H"
 #include "LEVEL.H"
 #include "SCL.H" // ＳＣＬ定義ファイル
@@ -351,25 +352,34 @@ static void enemy_set(void)
 			break;
 
 			case(SCL_STAGECLEAR):	// ステージクリア
-				if(ConfigDat.StageSelect.v) {
-					DemoplaySaveReplay();
-					GameExit(true);
+				if(DemoplayLoadEnable) return;
+				if(ReplayPlaybackActive()) {
+					if(ReplayPlaybackHasStage(static_cast<uint8_t>(GameStage + 1))) {
+						GameNextStage();
+					} else {
+						GameReplayPlaybackComplete();
+					}
 					return;
 				}
-				if(DemoplayLoadEnable) return;
+				if(ReplayRecordMode() == REPLAY_MODE::PRACTICE) {
+					GameReplayPracticeComplete();
+					return;
+				}
 				// ステージクリア処理をここに記述 //
 				GameNextStage();	// 本当はエラーチェックが必要!!
 			return;
 
 			case(SCL_GAMECLEAR):
-				if(ConfigDat.StageSelect.v) {
-					DemoplaySaveReplay();
-					GameExit(true);
+				if(DemoplayLoadEnable) return;
+				if(ReplayPlaybackActive()) {
+					GameReplayPlaybackComplete();
 					return;
 				}
-				if(DemoplayLoadEnable) return;
+				if(ReplayRecordMode() == REPLAY_MODE::PRACTICE) {
+					GameReplayPracticeComplete();
+					return;
+				}
 
-				if(GameStage == STAGE_MAX) GameStage = 7;
 				if(GameLevel != GAME_EASY) {
 					switch(Viv.weapon){
 						case(0):	ConfigDat.ExtraStgFlags.v |= 1;	break;
@@ -378,16 +388,21 @@ static void enemy_set(void)
 					}
 				}
 				ConfigSave();
-				EndingInit();
+				GameReplayNormalComplete();
 			return;
 
 			case(SCL_EXTRACLEAR):
-				if(ConfigDat.StageSelect.v) {
-					DemoplaySaveReplay();	// 終了はしない
-				}
 				if(DemoplayLoadEnable) return;
+				if(ReplayPlaybackActive()) {
+					GameReplayPlaybackComplete();
+					return;
+				}
+				if(ReplayRecordMode() == REPLAY_MODE::PRACTICE) {
+					GameReplayPracticeComplete();
+					return;
+				}
 
-				NameRegistInit(true);
+				GameReplayExtraComplete();
 			return;
 
 			case(SCL_MAPPALETTE):	// マップパーツ用Surface からパレットを

@@ -153,9 +153,6 @@ struct CONFIG_DATA {
 	// エキストラステージ判定用フラグ
 	OPTION<uint8_t> ExtraStgFlags = { 0 };
 
-	// ワケ有りでここにいるのです(チェックサムの範囲外)
-	OPTION<uint8_t> StageSelect = { 0, U8Below<STAGE_MAX> };
-
 	GRAPHICS_PARAMS GraphicsParams(void) const;
 	void GraphicsParamsApply(const GRAPHICS_PARAMS& params);
 };

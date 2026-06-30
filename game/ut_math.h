@@ -55,6 +55,7 @@ int32_t isqrt(int32_t s);
 
 // 乱数 //
 void rnd_seed_set(uint32_t val);
+uint32_t rnd_seed_get(void);
 uint16_t rnd(void);
 
 

@@ -135,6 +135,11 @@ void rnd_seed_set(uint32_t val)
 	random_seed = val;
 }
 
+uint32_t rnd_seed_get(void)
+{
+	return random_seed;
+}
+
 int32_t isqrt(int32_t s)
 {
 	// Near-constant-time integer square root algorithm, adapted from

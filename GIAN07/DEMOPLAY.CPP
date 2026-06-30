@@ -7,7 +7,6 @@
 
 #include "platform/file.h"
 #include "CONFIG.H"
-#include "LZ_UTY.H"
 #include "GIAN.H"
 #include "DEMOPLAY.H"
 #include "game/input.h"
@@ -27,17 +26,6 @@ struct {
 
 //DWORD RndBuf[RNDBUF_MAX];
 
-
-std::u8string ReplayFN(uint8_t stage)
-{
-	if(stage == GRAPH_ID_EXSTAGE) {
-		return std::u8string{ u8"秋霜りぷEx.DAT" };
-	}
-
-	auto ret = std::u8string{ u8"秋霜りぷ_.DAT" };
-	ret[ret.size() - 5] = ('0' + GameStage);
-	return ret;
-}
 
 void DemoplayInit(void)
 {
@@ -175,85 +163,4 @@ void DemoplayCleanup(void)
 	ConfigDat.InputFlags.v  = ConfigTemp.InputFlags;
 
 	DemoplayLoadEnable = false;
-}
-
-
-void DemoplaySaveReplay(void)
-{
-	if(!DemoplaySaveEnable) return;
-
-	// すぐさま、無効化する //
-	DemoplaySaveEnable = false;
-
-	DemoBuffer[DemoFrameCur] = KEY_ESC;
-	DemoInfo.FrameCount = (DemoFrameCur + 1);
-
-	PACKFILE_WRITE out = { {
-		std::span(&DemoInfo, 1), std::span(DemoBuffer, DemoInfo.FrameCount),
-	} };
-
-	const auto fn = ReplayFN(GameStage);
-	out.Write(fn.c_str());
-}
-
-
-bool DemoplayLoadReplay(int stage)
-{
-	BYTE_BUFFER_OWNED	temp;
-
-	const auto fn = ReplayFN(stage);
-	const auto in = FilStartR(fn.c_str());
-
-	// ヘッダの格納先は０番である //
-	temp = in.MemExpand( 0);
-	if(nullptr == temp) {
-		return false;
-	}
-	memcpy(&DemoInfo, temp.get(), sizeof(DEMOPLAY_INFO));
-
-	// データの格納先は１番ですね //
-	temp = in.MemExpand( 1);
-	if(nullptr == temp) {
-		return false;
-	}
-	memcpy(DemoBuffer, temp.get(), (sizeof(INPUT_BITS) * DemoInfo.FrameCount));
-
-	// Repair any replay-related bugs from earlier builds
-	// --------------------------------------------------
-
-	bool repair = false;
-	const auto file_level = DemoInfo.CfgDat.GameLevel;
-	const auto file_lives = DemoInfo.CfgDat.PlayerStock;
-
-	// ≥P0295 was writing the configured difficulty and starting lives for the
-	// regular 6 stages instead of the fixed values for the Extra Stage.
-	// MODDERS: If this bug doesn't apply to you because you modded an earlier
-	// build, mark the affected files as read-only to skip this patch.
-	if(
-		(stage == GRAPH_ID_EXSTAGE) &&
-		((file_level != EXTRA_LEVEL) || (file_lives != EXTRA_LIVES))
-	) {
-		DemoInfo.CfgDat.GameLevel = EXTRA_LEVEL;
-		DemoInfo.CfgDat.PlayerStock = EXTRA_LIVES;
-		repair = true;
-	}
-
-	// ≥P0217 was writing twice as many frames as recorded.
-	if(temp.size() != (sizeof(INPUT_BITS) * DemoInfo.FrameCount)) {
-		repair = true;
-	}
-
-	if(repair) {
-		PACKFILE_WRITE out = { {
-			std::span(&DemoInfo, 1),
-			std::span(DemoBuffer, DemoInfo.FrameCount),
-		} };
-		if(!out.Write(fn.c_str(), File_TimestampsGet(fn.c_str()))) {
-			// Repair denied by file being read-only? OK, bro, you're the boss!
-			DemoInfo.CfgDat.GameLevel = file_level;
-			DemoInfo.CfgDat.PlayerStock = file_lives;
-		}
-	}
-	// --------------------------------------------------
-	return DemoplayLoadSetup();
 }
