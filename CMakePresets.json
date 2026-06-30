@@ -21,10 +21,28 @@
 			"name": "windows-msvc",
 			"displayName": "Windows (MSVC x86 + Ninja)",
 			"inherits": "ninja-multi",
+			"architecture": {
+				"value": "x86",
+				"strategy": "external"
+			},
+			"toolset": {
+				"value": "host=x64",
+				"strategy": "external"
+			},
+			"environment": {
+				"CC": "cl",
+				"CXX": "cl"
+			},
 			"condition": {
 				"type": "equals",
 				"lhs": "${hostSystemName}",
 				"rhs": "Windows"
+			},
+			"vendor": {
+				"microsoft.com/VisualStudioSettings/CMake/1.0": {
+					"hostOS": ["Windows"],
+					"intelliSenseMode": "windows-msvc-x86"
+				}
 			}
 		},
 		{
