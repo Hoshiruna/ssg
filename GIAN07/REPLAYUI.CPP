@@ -33,7 +33,6 @@ enum class UI_STATE {
 UI_STATE State = UI_STATE::NONE;
 void (*Done)(void) = nullptr;
 size_t SelectedSlot = 0;
-size_t HighlightedSlot = 0;
 std::array<REPLAY_SLOT_INFO, REPLAY_SLOT_COUNT> Slots;
 std::array<char, (REPLAY_NAME_LENGTH + 1)> ReplayName;
 size_t NameCursor = 0;
@@ -84,12 +83,25 @@ WINDOW_CHOICE MessageItem[] = {
 };
 WINDOW_MENU MessageMenu = { std::span(MessageItem), [](bool) {}, &MessageTitle };
 
+char ReplayInfoLine[4][64];
+WINDOW_LABEL ReplayInfoTitle = { " Replay Information" };
+WINDOW_CHOICE ReplayInfoItem[] = {
+	{ ReplayInfoLine[0], "", WINDOW_FLAGS::NONE },
+	{ ReplayInfoLine[1], "", WINDOW_FLAGS::NONE },
+	{ ReplayInfoLine[2], "", WINDOW_FLAGS::NONE },
+	{ ReplayInfoLine[3], "", WINDOW_FLAGS::NONE },
+};
+WINDOW_MENU ReplayInfoMenu = {
+	std::span(ReplayInfoItem), [](bool) {}, &ReplayInfoTitle
+};
+
 extern WINDOW_SYSTEM SlotWindow;
 WINDOW_SYSTEM StageWindow = { StageMenu };
 WINDOW_SYSTEM PracticeWindow = { PracticeMenu };
 WINDOW_SYSTEM PromptWindow = { PromptMenu };
 WINDOW_SYSTEM OverwriteWindow = { OverwriteMenu };
 WINDOW_SYSTEM MessageWindow = { MessageMenu };
+WINDOW_SYSTEM ReplayInfoWindow = { ReplayInfoMenu };
 
 size_t SlotListSize(void)
 {
@@ -125,12 +137,80 @@ const char* DifficultyLabel(uint8_t difficulty)
 	return (difficulty < std::size(LABEL)) ? LABEL[difficulty] : "Extra";
 }
 
+void UpdateSlotInfo(size_t slot)
+{
+	const auto& info = Slots[slot];
+	for(auto& line : ReplayInfoLine) {
+		line[0] = '\0';
+	}
+
+	if(info.State == REPLAY_SLOT_STATE::VALID) {
+		const auto day = std::chrono::floor<std::chrono::days>(
+			std::chrono::sys_seconds(std::chrono::seconds(info.TimestampUTC))
+		);
+		const std::chrono::year_month_day ymd(day);
+		sprintf(
+			ReplayInfoLine[0],
+			" Date UTC  %04d-%02u-%02u",
+			static_cast<int>(ymd.year()),
+			static_cast<unsigned>(ymd.month()),
+			static_cast<unsigned>(ymd.day())
+		);
+		sprintf(
+			ReplayInfoLine[1],
+			" Score %-12lld Graze %u",
+			static_cast<long long>(info.Score),
+			info.Graze
+		);
+		sprintf(
+			ReplayInfoLine[2],
+			" %-8s Weapon %u  %s",
+			DifficultyLabel(info.Difficulty),
+			static_cast<unsigned>(info.Weapon + 1),
+			ModeLabel(info.Mode)
+		);
+		sprintf(
+			ReplayInfoLine[3],
+			" Stages %s - %s",
+			(info.Stages[0] == GRAPH_ID_EXSTAGE) ? "EX" :
+				std::to_string(info.Stages[0]).c_str(),
+			(info.Stages[info.StageCount - 1] == GRAPH_ID_EXSTAGE) ? "EX" :
+				std::to_string(info.Stages[info.StageCount - 1]).c_str()
+		);
+	} else {
+		sprintf(
+			ReplayInfoLine[0], " Status  %s", SlotStateLabel(info.State)
+		);
+	}
+
+	for(auto& item : ReplayInfoItem) {
+		item.FlagsPrev = WINDOW_FLAGS::FORCE_RERENDER;
+	}
+}
+
 void SlotGenerate(
 	WINDOW_CHOICE& ret, size_t generated, size_t selected
 )
 {
 	const auto& info = Slots[generated];
-	if(info.State == REPLAY_SLOT_STATE::VALID) {
+	if((State == UI_STATE::NAME) && (generated == SelectedSlot)) {
+		auto display_name = ReplayName;
+		for(size_t i = 0; i < REPLAY_NAME_LENGTH; i++) {
+			if((display_name[i] == '\0') || (display_name[i] == ' ')) {
+				display_name[i] = '_';
+			}
+		}
+		sprintf(
+			SlotTitle[generated],
+			" %02zu  %.*s[%c]%.*s",
+			(generated + 1),
+			static_cast<int>(NameCursor),
+			display_name.data(),
+			display_name[NameCursor],
+			static_cast<int>(REPLAY_NAME_LENGTH - NameCursor - 1),
+			(display_name.data() + NameCursor + 1)
+		);
+	} else if(info.State == REPLAY_SLOT_STATE::VALID) {
 		sprintf(
 			SlotTitle[generated],
 			" %02zu  %-8.8s  Stage %s",
@@ -148,26 +228,30 @@ void SlotGenerate(
 		);
 	}
 	ret.Title = SlotTitle[generated];
-	ret.Help = (
-		(State == UI_STATE::SAVE_SLOTS)
+	ret.Help = ((State == UI_STATE::NAME)
+		? "UP/DOWN: Character  LEFT/RIGHT: Position  SHOT: Save  ESC: Back"
+		: (State == UI_STATE::SAVE_SLOTS)
 			? "Select this slot for saving"
-			: "Select a valid replay for playback"
+			: "再生する有効なReplayを選択してください"
 	);
 	ret.Flags = (
 		(generated == selected) ? WINDOW_FLAGS::HIGHLIGHT : WINDOW_FLAGS::NONE
 	);
 	if(generated == selected) {
-		HighlightedSlot = generated;
+		UpdateSlotInfo(generated);
 		sprintf(
 			SlotHeader,
-			" %s Replay (%02zu/20)",
-			(State == UI_STATE::SAVE_SLOTS) ? "Save" : "Load",
+			" %s (%02zu/20)",
+			(State == UI_STATE::NAME) ? "Replay Name" :
+				(State == UI_STATE::SAVE_SLOTS) ? "Save Replay" :
+				"Load Replay",
 			(generated + 1)
 		);
 	}
 }
 
 void OpenSlotList(UI_STATE state, size_t selected);
+void OpenNameEntry(void);
 
 bool SlotHandle(INPUT_BITS key, size_t selected)
 {
@@ -193,7 +277,7 @@ bool SlotHandle(INPUT_BITS key, size_t selected)
 			);
 			StageItem[i] = {
 				StageTitle[i],
-				"Start playback here and continue through later stages",
+				"ここからプレイを始めよう",
 				[](INPUT_BITS stage_key) {
 					if(Input_IsCancel(stage_key)) {
 						OpenSlotList(UI_STATE::LOAD_SLOTS, SelectedSlot);
@@ -222,16 +306,7 @@ bool SlotHandle(INPUT_BITS key, size_t selected)
 		OverwriteWindow.OpenCentered(210, 1);
 		State = UI_STATE::OVERWRITE;
 	} else {
-		ReplayName = ReplayDefaultName();
-		for(size_t i = 0; i < REPLAY_NAME_LENGTH; i++) {
-			if(ReplayName[i] == '\0') {
-				ReplayName[i] = ' ';
-			}
-		}
-		NameCursor = 0;
-		NameOldKey = Key_Data;
-		Message.clear();
-		State = UI_STATE::NAME;
+		OpenNameEntry();
 	}
 	return true;
 }
@@ -252,6 +327,19 @@ void OpenSlotList(UI_STATE state, size_t selected)
 	);
 	SlotWindow.Init(330);
 	SlotWindow.OpenCentered(330, SlotWindow.Select[0]);
+	ReplayInfoWindow.Init(330);
+	ReplayInfoWindow.Open(
+		{
+			SlotWindow.x,
+			(
+				SlotWindow.y +
+				((SlotMenu.Menu.NumItems + 1) * CWIN_ITEM_H) +
+				8
+			)
+		},
+		0
+	);
+	ReplayInfoWindow.Select[0] = 0xFF;
 }
 
 void Complete(void)
@@ -296,6 +384,10 @@ void OpenNameEntry(void)
 	NameOldKey = Key_Data;
 	Message.clear();
 	State = UI_STATE::NAME;
+	Slots = ReplayScanSlots();
+	SlotMenu.Init(SlotWindow, SelectedSlot, nullptr);
+	SlotWindow.Init(330);
+	SlotWindow.OpenCentered(330, SlotWindow.Select[0]);
 }
 
 bool OverwriteYes(INPUT_BITS key)
@@ -381,44 +473,9 @@ void NameMove(void)
 			}
 		}
 	}
-}
-
-void DrawSlotDetails(void)
-{
-	const auto slot = HighlightedSlot;
-	const auto& info = Slots[slot];
-	if(info.State != REPLAY_SLOT_STATE::VALID) {
-		GrpPut16(144, 388, SlotStateLabel(info.State));
-		return;
+	if(State == UI_STATE::NAME) {
+		SlotMenu.Init(SlotWindow, SelectedSlot, nullptr);
 	}
-
-	const auto day = std::chrono::floor<std::chrono::days>(
-		std::chrono::sys_seconds(std::chrono::seconds(info.TimestampUTC))
-	);
-	const std::chrono::year_month_day ymd(day);
-	char detail[160];
-	sprintf(
-		detail,
-		"UTC %04d-%02u-%02u  Score %lld  Graze %u",
-		static_cast<int>(ymd.year()),
-		static_cast<unsigned>(ymd.month()),
-		static_cast<unsigned>(ymd.day()),
-		static_cast<long long>(info.Score),
-		info.Graze
-	);
-	GrpPut16(144, 388, detail);
-	sprintf(
-		detail,
-		"%s  Weapon %u  %s  Stages %s-%s",
-		DifficultyLabel(info.Difficulty),
-		static_cast<unsigned>(info.Weapon + 1),
-		ModeLabel(info.Mode),
-		(info.Stages[0] == GRAPH_ID_EXSTAGE) ? "EX" :
-			std::to_string(info.Stages[0]).c_str(),
-		(info.Stages[info.StageCount - 1] == GRAPH_ID_EXSTAGE) ? "EX" :
-			std::to_string(info.Stages[info.StageCount - 1]).c_str()
-	);
-	GrpPut16(144, 408, detail);
 }
 
 } // namespace
@@ -520,7 +577,8 @@ tagWINDOW_SYSTEM* ReplayUIWindow(void)
 {
 	switch(State) {
 		case UI_STATE::LOAD_SLOTS:
-		case UI_STATE::SAVE_SLOTS:  return &SlotWindow;
+		case UI_STATE::SAVE_SLOTS:
+		case UI_STATE::NAME:        return &SlotWindow;
 		case UI_STATE::LOAD_STAGES: return &StageWindow;
 		case UI_STATE::PRACTICE:    return &PracticeWindow;
 		case UI_STATE::SAVE_PROMPT: return &PromptWindow;
@@ -555,30 +613,14 @@ void ReplayUIMove(void)
 
 void ReplayUIDraw(void)
 {
-	if(State == UI_STATE::NAME) {
-		char name[REPLAY_NAME_LENGTH + 1];
-		memcpy(name, ReplayName.data(), REPLAY_NAME_LENGTH);
-		name[REPLAY_NAME_LENGTH] = '\0';
-		GrpPut16(220, 170, "REPLAY NAME");
-		GrpPut16(220, 210, name);
-		char cursor[REPLAY_NAME_LENGTH + 1] = {};
-		memset(cursor, ' ', REPLAY_NAME_LENGTH);
-		cursor[NameCursor] = '^';
-		GrpPut16(220, 228, cursor);
-		GrpPut16(132, 270, "UP/DOWN: Character  LEFT/RIGHT: Position");
-		GrpPut16(132, 290, "SHOT/ENTER: Next or Save  ESC/BOMB: Back");
-		if(!Message.empty()) {
-			GrpPut16(132, 330, Message.c_str());
-		}
-		return;
-	}
-
 	if(auto* window = ReplayUIWindow()) {
 		CWinDraw(window);
 	}
 	if((State == UI_STATE::LOAD_SLOTS) || (State == UI_STATE::SAVE_SLOTS)) {
-		DrawSlotDetails();
+		CWinDraw(&ReplayInfoWindow);
 	} else if(State == UI_STATE::MESSAGE) {
 		GrpPut16(132, 360, Message.c_str());
+	} else if((State == UI_STATE::NAME) && !Message.empty()) {
+		GrpPut16(144, 388, Message.c_str());
 	}
 }
