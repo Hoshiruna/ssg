@@ -70,6 +70,20 @@
 			"targets": ["GIAN07"]
 		},
 		{
+			"name": "windows-launcher-debug",
+			"displayName": "Windows Launcher (Debug)",
+			"configurePreset": "windows-msvc",
+			"configuration": "Debug",
+			"targets": ["GIAN07_launcher"]
+		},
+		{
+			"name": "windows-launcher-release",
+			"displayName": "Windows Launcher (Release)",
+			"configurePreset": "windows-msvc",
+			"configuration": "Release",
+			"targets": ["GIAN07_launcher"]
+		},
+		{
 			"name": "linux-debug",
 			"configurePreset": "linux",
 			"configuration": "Debug",
@@ -80,6 +94,20 @@
 			"configurePreset": "linux",
 			"configuration": "Release",
 			"targets": ["GIAN07"]
+		},
+		{
+			"name": "linux-launcher-debug",
+			"displayName": "Linux Launcher (Debug)",
+			"configurePreset": "linux",
+			"configuration": "Debug",
+			"targets": ["GIAN07_launcher"]
+		},
+		{
+			"name": "linux-launcher-release",
+			"displayName": "Linux Launcher (Release)",
+			"configurePreset": "linux",
+			"configuration": "Release",
+			"targets": ["GIAN07_launcher"]
 		}
 	]
 }

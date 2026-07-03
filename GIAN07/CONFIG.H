@@ -94,8 +94,7 @@ struct CONFIG_DATA {
 	template <ENUMFLAGS V> static constexpr auto Flag = &ValidateFlag<V>;
 	static constexpr auto ValidateVolume = &ValidateBelow<VOLUME, VOLUME_MAX>;
 
-	// 32 is the WinMM joy button limit //
-	static constexpr auto ValidateWinMMPad = Below<INPUT_PAD_BUTTON, 32>;
+		static constexpr auto ValidatePad = Below<INPUT_PAD_BUTTON, PAD_DPAD_DOWN>;
 
 	// 難易度関連 //
 	// ---------- //
@@ -115,10 +114,10 @@ struct CONFIG_DATA {
 	// グラフィック関連 //
 	OPTION<uint8_t> DeviceID = { 0 };	// 何番目のデバイスか
 	std::u8string GraphicsAPI;
-	OPTION<uint8_t> WindowScale4x = { 0 };
+	OPTION<uint8_t> WindowScale4x = { 4 };
 	OPTION<int16_t> WindowLeft = { GRAPHICS_TOPLEFT_UNDEFINED };
 	OPTION<int16_t> WindowTop = { GRAPHICS_TOPLEFT_UNDEFINED };
-	OPTION<BITDEPTH> BitDepth;	// ビット深度
+	OPTION<BITDEPTH> BitDepth = { BITDEPTHS::find(32) };	// ビット深度
 
 	// Target frame rate = 60 / [FPSDivisor]. 0 disables any frame rate
 	// limitation.
@@ -129,6 +128,7 @@ struct CONFIG_DATA {
 	OPTION<uint8_t> ScreenshotEffort = {
 		0, U8Below<GRP_SCREENSHOT_EFFORT_MAX>
 	};
+	OPTION<uint8_t> VSync = { 1, U8Below<1> };
 
 	// サウンド・ＢＧＭ関連 //
 	OPTION<uint8_t> SoundFlags = {
@@ -145,10 +145,26 @@ struct CONFIG_DATA {
 	// デバッグに関するフラグ
 	OPTION<uint8_t> DebugFlags = { 0, Mask<DBGF_MASK> };
 
-	OPTION<INPUT_PAD_BUTTON> PadTama = { 1, ValidateWinMMPad };
-	OPTION<INPUT_PAD_BUTTON> PadBomb = { 2, ValidateWinMMPad };
-	OPTION<INPUT_PAD_BUTTON> PadShift = { 0, ValidateWinMMPad };
-	OPTION<INPUT_PAD_BUTTON> PadCancel = { 0, ValidateWinMMPad };
+	OPTION<INPUT_PAD_BUTTON> PadTama = { PAD_DPAD_RIGHT, ValidatePad };
+	OPTION<INPUT_PAD_BUTTON> PadBomb = { PAD_DPAD_UP, ValidatePad };
+	OPTION<INPUT_PAD_BUTTON> PadShift = { PAD_DPAD_DOWN, ValidatePad };
+	OPTION<INPUT_PAD_BUTTON> PadCancel = { PAD_BUTTON_NONE, ValidatePad };
+	OPTION<INPUT_PAD_BUTTON> PadLeft = { PAD_LSTICK_LEFT, ValidatePad };
+	OPTION<INPUT_PAD_BUTTON> PadRight = { PAD_LSTICK_RIGHT, ValidatePad };
+	OPTION<INPUT_PAD_BUTTON> PadUp = { PAD_LSTICK_UP, ValidatePad };
+	OPTION<INPUT_PAD_BUTTON> PadDown = { PAD_LSTICK_DOWN, ValidatePad };
+	OPTION<INPUT_PAD_BUTTON> PadPause = { PAD_BUTTON_FIRST + 2, ValidatePad };
+
+	// SDL scancodes used by the configurable keyboard bindings.
+	static constexpr auto ValidateKey = Below<INPUT_KEY, 511>;
+	OPTION<INPUT_KEY> KeyLeft = { 80, ValidateKey };    // Left arrow
+	OPTION<INPUT_KEY> KeyRight = { 79, ValidateKey };   // Right arrow
+	OPTION<INPUT_KEY> KeyUp = { 82, ValidateKey };      // Up arrow
+	OPTION<INPUT_KEY> KeyDown = { 81, ValidateKey };    // Down arrow
+	OPTION<INPUT_KEY> KeyShot = { 29, ValidateKey };    // Z
+	OPTION<INPUT_KEY> KeyBomb = { 27, ValidateKey };    // X
+	OPTION<INPUT_KEY> KeyFocus = { 225, ValidateKey };  // Left Shift
+	OPTION<INPUT_KEY> KeyPause = { 41, ValidateKey };   // Escape
 
 	// エキストラステージ判定用フラグ
 	OPTION<uint8_t> ExtraStgFlags = { 0 };

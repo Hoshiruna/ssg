@@ -10,6 +10,7 @@
 
 using SDL_COLOR = SDL_FColor;
 
+#include "GIAN07/CONFIG.H"
 #include "platform/sdl/graphics_sdl.h"
 #include "platform/sdl/log_sdl.h"
 #include "platform/sdl/window_sdl.h"
@@ -602,6 +603,7 @@ std::optional<GRAPHICS_INIT_RESULT> PrimaryInitFull(GRAPHICS_PARAMS params)
 		);
 		return PrimaryCleanup();
 	}
+	SDL_SetRenderVSync(PrimaryRenderer, ConfigDat.VSync.v ? 1 : 0);
 	const auto driver_str = GrpBackend_APIString();
 
 	const auto props = SDL_GetRendererProperties(PrimaryRenderer);

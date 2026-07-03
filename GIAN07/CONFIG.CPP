@@ -249,15 +249,27 @@ const struct VERSION_03 {
 	);
 } VERSION_03;
 
+const struct VERSION_04 {
+	static constexpr auto FN = u8"CONFIG.DAT";
 
-// Must be sorted from the newest to the oldest version.
-const auto VERSIONS = std::make_tuple(
-	VERSION_03,
-	VERSION_02,
-	VERSION_01,
-	VERSION_00,
-	VERSION_ORIGINAL
-);
+	static constexpr auto Options = std::tie(
+		VERSION_03.Options,
+		ConfigDat.VSync,
+		ConfigDat.KeyLeft,
+		ConfigDat.KeyRight,
+		ConfigDat.KeyUp,
+		ConfigDat.KeyDown,
+		ConfigDat.KeyShot,
+		ConfigDat.KeyBomb,
+		ConfigDat.KeyFocus,
+		ConfigDat.KeyPause,
+		ConfigDat.PadLeft,
+		ConfigDat.PadRight,
+		ConfigDat.PadUp,
+		ConfigDat.PadDown,
+		ConfigDat.PadPause
+	);
+} VERSION_04;
 
 bool VersionLoad(const VERSION auto& version)
 {
@@ -266,7 +278,12 @@ bool VersionLoad(const VERSION auto& version)
 		return false;
 	}
 	defer(SDL_CloseIO(f));
-	return OptionRead(version.Options, *f);
+	if(!OptionRead(version.Options, *f)) {
+		return false;
+	}
+	const auto pos = SDL_TellIO(f);
+	const auto size = SDL_GetIOSize(f);
+	return ((pos < 0) || (size < 0) || (pos == size));
 }
 
 bool VersionSave(const VERSION auto& version)
@@ -340,9 +357,9 @@ extern void ConfigLoad()
 	DebugInit();
 #endif
 
-	std::apply([](const auto&... version) {
-		(... || VersionLoad(version));
-	}, VERSIONS);
+	if(!VersionLoad(VERSION_04)) {
+		ConfigDat = CONFIG_DATA{};
+	}
 
 	if(VERSION_ORIGINAL.BitDepth8Or16.loaded) {
 		ConfigDat.BitDepth = VERSION_ORIGINAL.BitDepth8Or16;
@@ -359,17 +376,8 @@ extern void ConfigLoad()
 // コンフィグの内容を保存する //
 extern void ConfigSave(void)
 {
-	// Backwards compatibility with 秋霜CFG.DAT
-	VERSION_ORIGINAL.BitDepth8Or16.v = ((ConfigDat.BitDepth.v.value() > 16)
-		? BITDEPTHS::find(16)
-		: ConfigDat.BitDepth.v
-	);
-	VERSION_ORIGINAL.GraphFlags.v = (ConfigDat.GraphFlags.v & GRPF_ORIG_MASK);
-	VERSION_ORIGINAL.SoundFlags.v  = (ConfigDat.SoundFlags.v & SNDF_SE_ENABLE);
-	VERSION_ORIGINAL.SoundFlags.v |= (BGM_Enabled() * SNDF_BGM_ENABLE);
-	VERSION_ORIGINAL.CheckSum.v = VERSION_ORIGINAL.CheckSumCalculate();
-
-	ConfigDat.SoundFlags.v = VERSION_ORIGINAL.SoundFlags.v;
+	ConfigDat.SoundFlags.v  = (ConfigDat.SoundFlags.v & SNDF_SE_ENABLE);
+	ConfigDat.SoundFlags.v |= (BGM_Enabled() * SNDF_BGM_ENABLE);
 	ConfigDat.SoundFlags.v |= (!BGM_GainApply() * SNDF_BGM_NOT_VOL_NORM);
 
 	if(const auto maybe_topleft = WndBackend_Topleft()) {
@@ -378,9 +386,7 @@ extern void ConfigSave(void)
 		ConfigDat.WindowTop.v = topleft.second;
 	}
 
-	std::apply([](const auto&... version) {
-		(..., VersionSave(version));
-	}, VERSIONS);
+	VersionSave(VERSION_04);
 
 #ifdef PBG_DEBUG
 	SDL_SaveFile(DBG_FN, &DebugDat, sizeof(DebugDat));

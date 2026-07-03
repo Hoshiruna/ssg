@@ -7,6 +7,7 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_joystick.h>
 
+#include "GIAN07/CONFIG.H"
 #include "platform/input.h"
 #include "game/defer.h"
 #include "game/enum_flags.h"
@@ -57,10 +58,6 @@ struct KEY_BIND {
 };
 
 static constexpr std::pair<KEY_BIND, INPUT_BITS> KeyBindings[] = {
-	{ SDL_SCANCODE_UP,    	KEY_UP },
-	{ SDL_SCANCODE_DOWN,  	KEY_DOWN },
-	{ SDL_SCANCODE_LEFT,  	KEY_LEFT },
-	{ SDL_SCANCODE_RIGHT, 	KEY_RIGHT },
 	{ SDL_SCANCODE_KP_1,  	KEY_DLEFT },
 	{ SDL_SCANCODE_KP_2,  	KEY_DOWN },
 	{ SDL_SCANCODE_KP_3,  	KEY_DRIGHT },
@@ -69,19 +66,23 @@ static constexpr std::pair<KEY_BIND, INPUT_BITS> KeyBindings[] = {
 	{ SDL_SCANCODE_KP_7,  	KEY_ULEFT },
 	{ SDL_SCANCODE_KP_8,  	KEY_UP },
 	{ SDL_SCANCODE_KP_9,  	KEY_URIGHT },
-	{ SDL_SCANCODE_Z,     	KEY_TAMA },
-	{ SDL_SCANCODE_X,     	KEY_BOMB },
-	{ SDL_SCANCODE_LSHIFT,	KEY_SHIFT },
-	{ SDL_SCANCODE_ESCAPE,	KEY_ESC },
-
-	{ { SDL_SCANCODE_RETURN, KEY_MOD::NONE, KEY_MOD::LALT }, KEY_RETURN },
+};
+static const std::pair<const INPUT_KEY&, INPUT_BITS> ConfigKeyBindings[] = {
+	{ ConfigDat.KeyLeft.v, KEY_LEFT },
+	{ ConfigDat.KeyRight.v, KEY_RIGHT },
+	{ ConfigDat.KeyUp.v, KEY_UP },
+	{ ConfigDat.KeyDown.v, KEY_DOWN },
+	{ ConfigDat.KeyShot.v, KEY_TAMA },
+	{ ConfigDat.KeyBomb.v, KEY_BOMB },
+	{ ConfigDat.KeyFocus.v, KEY_SHIFT },
+	{ ConfigDat.KeyPause.v, KEY_ESC },
 };
 static constexpr std::pair<KEY_BIND, INPUT_SYSTEM_BITS> SystemKeyBindings[] = {
 	{ SDL_SCANCODE_P,    	SYSKEY_SNAPSHOT },
 	{ SDL_SCANCODE_LCTRL,	SYSKEY_SKIP },
 	{ SDL_SCANCODE_RCTRL,	SYSKEY_SKIP },
 	{ SDL_SCANCODE_F,    	SYSKEY_BGM_FADE },
-	{ SDL_SCANCODE_D,    	SYSKEY_BGM_DEVICE },
+	{ SDL_SCANCODE_F6,   	SYSKEY_BGM_DEVICE },
 	{ SDL_SCANCODE_F10,  	SYSKEY_GRP_SCALE_DOWN },
 	{ SDL_SCANCODE_F11,  	SYSKEY_GRP_SCALE_UP },
 	{ SDL_SCANCODE_F9,   	SYSKEY_GRP_SCALE_MODE },
@@ -99,6 +100,19 @@ template <class Bits> void Key_Flip(
 		key_data |= bits;
 	} else {
 		key_data &= ~bits;
+	}
+}
+
+void Pad_Flip(INPUT_PAD_BUTTON id, bool down)
+{
+	for(const auto& binding : Key_PadBindings) {
+		if(id == binding.first) {
+			if(down) {
+				Pad_Data |= binding.second;
+			} else {
+				Pad_Data &= ~binding.second;
+			}
+		}
 	}
 }
 
@@ -206,34 +220,37 @@ void Key_Read(void)
 		&event, 1, SDL_GETEVENT, SDL_EVENT_KEY_DOWN, SDL_EVENT_JOYSTICK_REMOVED
 	) == 1) {
 		switch(event.type) {
-		case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
-			auto& pad = *Pad_Find(event.jaxis.which);
+			case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
+				auto& pad = *Pad_Find(event.jaxis.which);
 
 			// The original WinMM backend did this without even taking the
 			// range reported by joyGetDevCaps() into account. However, that
 			// function returns a range of [0, 65535] with all joypads I've
 			// tried, which matches SDL's fixed [-32768, 32767] range, so we
-			// can do it here as well.
-			const auto v = (event.jaxis.value >> 11);
-			if(event.jaxis.axis == pad.axis_x) {
-				Pad_Data &= ~(KEY_LEFT | KEY_RIGHT);
-				Pad_Data |= ((v <= -4) ? KEY_LEFT : ((v >= 4) ? KEY_RIGHT : 0));
-			} else if(event.jaxis.axis == pad.axis_y) {
-				Pad_Data &= ~(KEY_UP | KEY_DOWN);
-				Pad_Data |= ((v <= -4) ? KEY_UP : ((v >= 4) ? KEY_DOWN : 0));
-			}
-			break;
-		}
-
-		case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
-		case SDL_EVENT_JOYSTICK_BUTTON_UP: {
-			// SDL's numbering starts at 0.
-			const INPUT_PAD_BUTTON id = (event.jbutton.button + 1);
-			for(const auto& binding : Key_PadBindings) {
-				if(id == binding.first) {
-					Key_Flip(Pad_Data, event.jbutton, binding.second);
+				// can do it here as well.
+				const auto v = (event.jaxis.value >> 11);
+				if(event.jaxis.axis == pad.axis_x) {
+					Pad_Flip(PAD_LSTICK_LEFT, (v <= -4));
+					Pad_Flip(PAD_LSTICK_RIGHT, (v >= 4));
+				} else if(event.jaxis.axis == pad.axis_y) {
+					Pad_Flip(PAD_LSTICK_UP, (v <= -4));
+					Pad_Flip(PAD_LSTICK_DOWN, (v >= 4));
 				}
+				break;
 			}
+
+			case SDL_EVENT_JOYSTICK_HAT_MOTION:
+				Pad_Flip(PAD_DPAD_LEFT, (event.jhat.value & SDL_HAT_LEFT));
+				Pad_Flip(PAD_DPAD_RIGHT, (event.jhat.value & SDL_HAT_RIGHT));
+				Pad_Flip(PAD_DPAD_UP, (event.jhat.value & SDL_HAT_UP));
+				Pad_Flip(PAD_DPAD_DOWN, (event.jhat.value & SDL_HAT_DOWN));
+				break;
+
+			case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+			case SDL_EVENT_JOYSTICK_BUTTON_UP: {
+				// SDL's numbering starts at 0.
+				const INPUT_PAD_BUTTON id = (event.jbutton.button + 1);
+				Pad_Flip(id, event.jbutton.down);
 
 			auto& pad = *Pad_Find(event.jbutton.which);
 			using HELD = std::numeric_limits<decltype(pad.button_pressed_last)>;
@@ -260,6 +277,14 @@ void Key_Read(void)
 			};
 			for(const auto& binding : KeyBindings) {
 				if(binding.first.Matches(scancode)) {
+					Key_Flip(Key_Data_Real, event.key, binding.second);
+				}
+			}
+			for(const auto& binding : ConfigKeyBindings) {
+				if(
+					(binding.first != 0) &&
+					(binding.first == scancode.scancode)
+				) {
 					Key_Flip(Key_Data_Real, event.key, binding.second);
 				}
 			}

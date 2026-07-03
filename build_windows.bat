@@ -1,6 +1,13 @@
 @echo off
 setlocal
 
+if /I "%~1" == "LauncherDebug" goto build_launcher_debug
+if /I "%~1" == "bin/GIAN07_launcherd.exe" goto build_launcher_debug
+if /I "%~1" == "bin/launcher/Debug/GIAN07_launcher.exe" goto build_launcher_debug
+if /I "%~1" == "Launcher" goto build_launcher_release
+if /I "%~1" == "bin/GIAN07_launcher.exe" goto build_launcher_release
+if /I "%~1" == "bin/launcher/Release/GIAN07_launcher.exe" goto build_launcher_release
+
 if "%VCINSTALLDIR%" == "" (
 	echo Error: The build must be run from within Visual Studio's `x64_x86 Cross Tools Command Prompt`.
 	exit /b 1
@@ -26,9 +33,13 @@ if /I "%BUILD_CONFIG%" == "Debug" goto build_debug
 if /I "%BUILD_CONFIG%" == "bin/GIAN07d.exe" goto build_debug
 if /I "%BUILD_CONFIG%" == "Release" goto build_release
 if /I "%BUILD_CONFIG%" == "bin/GIAN07.exe" goto build_release
+if /I "%BUILD_CONFIG%" == "LauncherDebug" goto build_launcher_debug
+if /I "%BUILD_CONFIG%" == "bin/GIAN07_launcherd.exe" goto build_launcher_debug
+if /I "%BUILD_CONFIG%" == "Launcher" goto build_launcher_release
+if /I "%BUILD_CONFIG%" == "bin/GIAN07_launcher.exe" goto build_launcher_release
 if /I "%BUILD_CONFIG%" == "all" goto build_all
 
-echo Usage: %~nx0 [Debug^|Release^|all]
+echo Usage: %~nx0 [Debug^|Release^|LauncherDebug^|Launcher^|all]
 exit /b 2
 
 :build_debug
@@ -39,8 +50,23 @@ exit /b %errorlevel%
 cmake --build --preset windows-release
 exit /b %errorlevel%
 
+:build_launcher_debug
+dotnet build launcher\GIAN07.Launcher.csproj --configuration Debug --nologo
+exit /b %errorlevel%
+
+:build_launcher_release
+dotnet publish launcher\GIAN07.Launcher.csproj ^
+	--configuration Release ^
+	-p:PublishProfile=WindowsSingleFile ^
+	--nologo
+exit /b %errorlevel%
+
 :build_all
 cmake --build --preset windows-debug
 if %errorlevel% neq 0 exit /b %errorlevel%
 cmake --build --preset windows-release
+if %errorlevel% neq 0 exit /b %errorlevel%
+cmake --build --preset windows-launcher-debug
+if %errorlevel% neq 0 exit /b %errorlevel%
+cmake --build --preset windows-launcher-release
 exit /b %errorlevel%

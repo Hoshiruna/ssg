@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0.3)
+﻿cmake_minimum_required(VERSION 4.0.3)
 
 # CMake's import-std support is still gated by a version-specific UUID.
 if(CMAKE_VERSION VERSION_LESS "4.3")
@@ -42,6 +42,13 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang"
 		AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18.1.2")
 	message(FATAL_ERROR "Clang 18.1.2 or newer is required.")
+endif()
+
+# CMake compiles MSVC's std/std.compat module interfaces as a separate
+# internal target. Keep /utf-8 in the global C++ flags so the module producer
+# and every importing target define the same _UTF8 environment.
+if(MSVC AND NOT CMAKE_CXX_FLAGS MATCHES "(^| )/utf-8($| )")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
 endif()
 
 if(NOT 23 IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
@@ -150,7 +157,6 @@ target_link_libraries(GIAN07 PRIVATE ssg_dependencies)
 
 if(MSVC)
 	target_compile_options(GIAN07 PRIVATE
-		/utf-8
 		/EHsc
 		"$<$<CONFIG:Release>:/Zi>"
 	)
@@ -158,6 +164,38 @@ if(MSVC)
 else()
 	# This must also be present while the standard library module is compiled.
 	target_compile_options(GIAN07 PRIVATE -pthread)
+endif()
+
+find_program(DOTNET_EXECUTABLE dotnet)
+if(DOTNET_EXECUTABLE)
+	if(WIN32)
+		set(SSG_LAUNCHER_RUNTIME "win-x64")
+	else()
+		set(SSG_LAUNCHER_RUNTIME "linux-x64")
+	endif()
+	add_custom_target(GIAN07_launcher
+		COMMAND
+			"${DOTNET_EXECUTABLE}" publish
+			"${CMAKE_SOURCE_DIR}/launcher/GIAN07.Launcher.csproj"
+			--configuration "$<CONFIG>"
+			--runtime "${SSG_LAUNCHER_RUNTIME}"
+			--self-contained true
+			-p:PublishSingleFile=true
+			-p:IncludeNativeLibrariesForSelfExtract=true
+			-p:EnableCompressionInSingleFile=true
+			-p:PublishTrimmed=false
+			-p:DebugSymbols=false
+			-p:DebugType=None
+			--output
+			"${CMAKE_SOURCE_DIR}/bin/launcher/$<CONFIG>/${SSG_LAUNCHER_RUNTIME}"
+			--nologo
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+		COMMENT "Publishing the Avalonia configuration launcher as one file"
+		USES_TERMINAL
+	)
+else()
+	message(STATUS
+		"dotnet was not found; the GIAN07_launcher target is unavailable.")
 endif()
 
 install(TARGETS GIAN07 RUNTIME DESTINATION bin)

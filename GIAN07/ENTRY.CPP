@@ -46,11 +46,16 @@ bool (*const BGM_MidLoadByHash)(const HASH& hash) = LoadMusicByHash;
 // Pad bindings
 // ------------
 
-static constexpr std::array<INPUT_PAD_BINDING, 4> PadBindings = { {
+static constexpr std::array<INPUT_PAD_BINDING, 9> PadBindings = { {
+	{ ConfigDat.PadLeft.v, KEY_LEFT },
+	{ ConfigDat.PadRight.v, KEY_RIGHT },
+	{ ConfigDat.PadUp.v, KEY_UP },
+	{ ConfigDat.PadDown.v, KEY_DOWN },
 	{ ConfigDat.PadTama.v, KEY_TAMA },
 	{ ConfigDat.PadBomb.v, KEY_BOMB },
 	{ ConfigDat.PadShift.v, KEY_SHIFT },
 	{ ConfigDat.PadCancel.v, KEY_ESC },
+	{ ConfigDat.PadPause.v, KEY_ESC },
 } };
 std::span<const INPUT_PAD_BINDING> Key_PadBindings = PadBindings;
 // ------------

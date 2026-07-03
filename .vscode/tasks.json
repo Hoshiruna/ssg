@@ -46,7 +46,7 @@
 		{
 			"label": "Build configuration launcher",
 			"type": "shell",
-			"command": "build_windows.bat bin/GIAN07_launcher.exe",
+			"command": "dotnet publish launcher/GIAN07.Launcher.csproj --configuration Release -p:PublishProfile=WindowsSingleFile --nologo",
 			"group": "build",
 			"problemMatcher": "$msCompile",
 			"options": {

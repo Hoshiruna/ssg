@@ -12,6 +12,20 @@ using INPUT_BITS = uint16_t;
 
 // 0 = unmapped.
 using INPUT_PAD_BUTTON = uint8_t;
+constexpr INPUT_PAD_BUTTON PAD_BUTTON_NONE = 0;
+constexpr INPUT_PAD_BUTTON PAD_BUTTON_FIRST = 1;
+constexpr INPUT_PAD_BUTTON PAD_BUTTON_LAST = 32;
+constexpr INPUT_PAD_BUTTON PAD_LSTICK_LEFT = 33;
+constexpr INPUT_PAD_BUTTON PAD_LSTICK_RIGHT = 34;
+constexpr INPUT_PAD_BUTTON PAD_LSTICK_UP = 35;
+constexpr INPUT_PAD_BUTTON PAD_LSTICK_DOWN = 36;
+constexpr INPUT_PAD_BUTTON PAD_DPAD_LEFT = 37;
+constexpr INPUT_PAD_BUTTON PAD_DPAD_RIGHT = 38;
+constexpr INPUT_PAD_BUTTON PAD_DPAD_UP = 39;
+constexpr INPUT_PAD_BUTTON PAD_DPAD_DOWN = 40;
+
+// SDL-compatible physical keyboard scancode. 0 = unmapped.
+using INPUT_KEY = uint16_t;
 
 // キーボード定数 //
 // Braced initializers cause a compile error if the constants don't fit within
