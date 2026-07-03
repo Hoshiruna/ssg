@@ -84,6 +84,20 @@
 			"targets": ["GIAN07_launcher"]
 		},
 		{
+			"name": "windows-all-debug",
+			"displayName": "Windows Game + Launcher (Debug)",
+			"configurePreset": "windows-msvc",
+			"configuration": "Debug",
+			"targets": ["SSG_all"]
+		},
+		{
+			"name": "windows-all-release",
+			"displayName": "Windows Game + Launcher (Release)",
+			"configurePreset": "windows-msvc",
+			"configuration": "Release",
+			"targets": ["SSG_all"]
+		},
+		{
 			"name": "linux-debug",
 			"configurePreset": "linux",
 			"configuration": "Debug",

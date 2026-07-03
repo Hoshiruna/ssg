@@ -193,9 +193,12 @@ if(DOTNET_EXECUTABLE)
 		COMMENT "Publishing the Avalonia configuration launcher as one file"
 		USES_TERMINAL
 	)
+
+	add_custom_target(SSG_all)
+	add_dependencies(SSG_all GIAN07 GIAN07_launcher)
 else()
 	message(STATUS
-		"dotnet was not found; the GIAN07_launcher target is unavailable.")
+		"dotnet was not found; the GIAN07_launcher and SSG_all targets are unavailable.")
 endif()
 
 install(TARGETS GIAN07 RUNTIME DESTINATION bin)
