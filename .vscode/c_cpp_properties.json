@@ -10,10 +10,7 @@
 			"defines": [
 				"WIN32"
 			],
-			"compilerArgs": [
-				"/reference", "std=${workspaceFolder}\\obj\\stdd.ifc",
-				"/reference", "std.compat=${workspaceFolder}\\obj\\std.compatd.ifc"
-			]
+			"compileCommands": "${workspaceFolder}/out/build/windows-msvc/compile_commands.json"
 		}
 	],
 	"version": 4

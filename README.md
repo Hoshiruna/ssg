@@ -1,5 +1,6 @@
 # 秋霜玉
 
+<<<<<<< HEAD
 ## Building
 
 This project uses [Tup](https://gittup.org/tup/) as its build system, so install a fitting version for your operating system.
@@ -65,6 +66,91 @@ On Linux:
 ```
 
 ## Debugging (Windows only)
+=======
+## Building
+
+The modern Windows and Linux binaries use [CMake](https://cmake.org/) with
+[Ninja](https://ninja-build.org/). CMake and Ninja manage the build; the
+actual compiler is MSVC on Windows and GCC or Clang on Linux.
+
+The minimum supported versions are:
+
+* CMake 4.0.3
+* Ninja 1.11
+* Visual Studio 2022 17.6, GCC 15, or Clang 18.1.2
+
+The older Tup build remains available for the Windows 98-compatible binary.
+
+All binaries will be put into the `bin/` subdirectory.
+
+### Windows
+
+MSVC is the supported Windows compiler. The build is 32-bit, so commands must
+be run from Visual Studio's *x64_x86 Cross Tools Command Prompt*.
+
+To build:
+
+1. Install [Git for Windows](https://gitforwindows.org/).
+2. Install Visual Studio Community 2022, with the *Desktop development for C++* workload.\
+   If you haven't already installed the IDE for other projects and don't plan to, you can install only the command-line compilers via the [Build Tools installer](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022).
+3. Install CMake and Ninja and make sure both are in `PATH`.
+4. Open the *x64_x86 Cross Tools Command Prompt* and navigate to this checkout.
+5. Build both configurations:
+
+   ```batch
+   build_windows.bat
+   ```
+
+   Pass `Debug` or `Release` to build only one configuration.
+
+The equivalent direct preset commands are:
+
+```batch
+cmake --preset windows-msvc
+cmake --build --preset windows-release
+```
+
+The repository's Visual Studio Code tasks use these CMake presets. Open VS Code
+from the same compiler prompt:
+
+```batch
+code .
+```
+
+#### Windows 98 binary
+
+The vintage target still uses Tup and its specialized dependency build:
+
+```batch
+build_windows_tup.bat bin/GIAN07_win98.exe
+build_windows_tup.bat bin/GIAN07_win98d.exe
+```
+
+### Linux
+
+Install CMake, Ninja, pkg-config, and the development packages for SDL 3,
+PangoCairo, Fontconfig, WebP, Ogg, and Vorbis.
+
+The build honors the `CC` and `CXX` environment variables when the preset is
+configured for the first time. Build both Debug and Release with:
+
+```sh
+./build_linux.sh
+```
+
+Pass `Debug` or `Release` to build only one configuration. The equivalent
+direct preset commands are:
+
+```sh
+cmake --preset linux
+cmake --build --preset linux-release
+```
+
+Use `install_linux.sh` to copy a compiled release build to its standard install
+locations.
+
+## Debugging (Windows only)
+>>>>>>> origin/master
 
 .PDB files are generated for Debug and Release builds, so you should get symbol support with any Windows debugger.
 
