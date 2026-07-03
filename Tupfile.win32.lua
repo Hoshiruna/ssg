@@ -137,3 +137,22 @@ end
 
 ssg(MODERN)
 ssg(VINTAGE)
+
+-- Native configuration launcher
+-- -----------------------------
+
+local launcher_cfg = CONFIG:branch({
+	cflags = {
+		"/std:c++latest",
+		"/DUNICODE",
+		"/D_UNICODE",
+		"/EHsc",
+		"/source-charset:utf-8",
+		"/execution-charset:utf-8",
+	},
+	lflags = "/SUBSYSTEM:windows",
+	objdir = "launcher/",
+})
+local launcher_obj = launcher_cfg:cxx("launcher/main.cpp")
+launcher_obj += launcher_cfg:rc("launcher/launcher.rc")
+launcher_cfg:exe(launcher_obj, "GIAN07_launcher")

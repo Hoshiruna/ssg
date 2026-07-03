@@ -44,6 +44,19 @@
 			}
 		},
 		{
+			"label": "Build configuration launcher",
+			"type": "shell",
+			"command": "build_windows.bat bin/GIAN07_launcher.exe",
+			"group": "build",
+			"problemMatcher": "$msCompile",
+			"options": {
+				"shell": {
+					"executable": "cmd",
+					"args": ["/d", "/c"]
+				}
+			}
+		},
+		{
 			"label": "Build Windows 98 binary (Debug)",
 			"type": "shell",
 			"command": "build_windows.bat bin/GIAN07_win98d.exe",
