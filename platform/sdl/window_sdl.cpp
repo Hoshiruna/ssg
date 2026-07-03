@@ -373,10 +373,14 @@ int WndBackend_Run(void)
 				return 0;
 
 			case SDL_EVENT_WINDOW_FOCUS_LOST:
+				BGM_Pause();
+				SndBackend_PauseAll();
 				active = false;
 				break;
 
 			case SDL_EVENT_WINDOW_FOCUS_GAINED:
+				BGM_Resume();
+				SndBackend_ResumeAll();
 				active = true;
 				break;
 
