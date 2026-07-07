@@ -32,6 +32,7 @@ public sealed partial class MainWindow : Window
     private bool _controllerDetected;
 
     public ObservableCollection<KeyBindingRow> KeyBindingRows { get; } = [];
+    public InputDeviceDetails InputDevices { get; } = new();
 
     public MainWindow()
     {
@@ -57,6 +58,8 @@ public sealed partial class MainWindow : Window
     private CheckBox VsyncControl => this.FindControl<CheckBox>("VsyncCheck")!;
     private CheckBox BorderlessControl => this.FindControl<CheckBox>("BorderlessCheck")!;
     private ComboBox ControllerControl => this.FindControl<ComboBox>("ControllerCombo")!;
+    private TextBlock ControllerLayoutStatusControl =>
+        this.FindControl<TextBlock>("ControllerLayoutStatusText")!;
     private TextBox ExecutablePathControl => this.FindControl<TextBox>("ExecutablePathBox")!;
     private TextBlock StatusControl => this.FindControl<TextBlock>("StatusText")!;
 
@@ -180,7 +183,6 @@ public sealed partial class MainWindow : Window
             GameConfigFile.Save(executable, _config);
             _settings.GameExecutable = ExecutablePathControl.Text?.Trim() ?? string.Empty;
             LauncherSettingsStore.Save(_settings);
-            SetStatus("Settings saved.", isError: false);
             return true;
         }
         catch (Exception exception) when (
@@ -222,15 +224,22 @@ public sealed partial class MainWindow : Window
     private void RefreshControllersClick(object? sender, RoutedEventArgs args)
     {
         RefreshControllers();
-        SetStatus("Controller list refreshed.", isError: false);
     }
 
     private void RefreshControllers()
     {
+        InputDevices.Refresh();
+
         var controllers = ControllerService.Enumerate();
         _controllerDetected = controllers.Count > 1;
-        ControllerControl.ItemsSource = controllers;
+        ControllerControl.ItemsSource = _controllerDetected
+            ? controllers
+            : ["(No pad device detected)"];
         ControllerControl.SelectedIndex = 0;
+        ControllerControl.IsEnabled = _controllerDetected;
+        ControllerLayoutStatusControl.Text = _controllerDetected
+            ? $"Controller button layout: {controllers[1]}"
+            : "Controller button layout: (No pad device detected)";
 
         foreach (var row in KeyBindingRows)
         {

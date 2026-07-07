@@ -9,51 +9,87 @@
     MinHeight="600"
     WindowStartupLocation="CenterScreen"
     Background="#F4F4F4"
-    Foreground="#202020">
+    Foreground="#0A0A0A"
+    FontSize="14"
+    FontWeight="Medium">
+
+  <Window.Resources>
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#707070" />
+  </Window.Resources>
 
   <Window.Styles>
     <Style Selector="TextBlock">
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="FontWeight" Value="Medium" />
     </Style>
     <Style Selector="Menu">
       <Setter Property="Background" Value="#E6E6E6" />
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
     </Style>
     <Style Selector="MenuItem">
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
     </Style>
     <Style Selector="Button">
       <Setter Property="MinHeight" Value="28" />
       <Setter Property="Padding" Value="12,4" />
       <Setter Property="Background" Value="#E5E5E5" />
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="FontWeight" Value="Medium" />
       <Setter Property="BorderBrush" Value="#A8A8A8" />
+    </Style>
+    <Style Selector="Button:pointerover">
+      <Setter Property="Foreground" Value="#000000" />
+      <Setter Property="Background" Value="#D8D3FF" />
+      <Setter Property="BorderBrush" Value="#746AC7" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#D8D3FF" />
+      <Setter Property="BorderBrush" Value="#746AC7" />
+    </Style>
+    <Style Selector="Button:pressed">
+      <Setter Property="Foreground" Value="#000000" />
+      <Setter Property="Background" Value="#B8B0FF" />
+      <Setter Property="BorderBrush" Value="#6252D1" />
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#B8B0FF" />
+      <Setter Property="BorderBrush" Value="#6252D1" />
+    </Style>
+    <Style Selector="Button:disabled">
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Foreground" Value="#555555" />
     </Style>
     <Style Selector="ComboBox">
       <Setter Property="MinHeight" Value="28" />
       <Setter Property="Background" Value="#FFFFFF" />
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="FontWeight" Value="Medium" />
       <Setter Property="BorderBrush" Value="#9A9A9A" />
     </Style>
     <Style Selector="TextBox">
       <Setter Property="MinHeight" Value="28" />
       <Setter Property="Background" Value="#FFFFFF" />
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="FontWeight" Value="Medium" />
       <Setter Property="BorderBrush" Value="#9A9A9A" />
+    </Style>
+    <Style Selector="TextBox:focus">
+      <Setter Property="BorderBrush" Value="#707070" />
     </Style>
     <Style Selector="GroupBox">
       <Setter Property="Padding" Value="8" />
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="TabItem">
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
       <Setter Property="FontSize" Value="13" />
-      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontWeight" Value="Medium" />
       <Setter Property="MinHeight" Value="30" />
       <Setter Property="Padding" Value="9,4" />
       <Setter Property="Margin" Value="0,0,2,0" />
-      <Setter Property="Background" Value="#ECECEC" />
-      <Setter Property="BorderBrush" Value="#A8A8A8" />
+      <Setter Property="Background" Value="#D8D8D8" />
+      <Setter Property="BorderBrush" Value="#858585" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Template">
         <ControlTemplate>
@@ -71,17 +107,54 @@
       </Setter>
     </Style>
     <Style Selector="TabItem:selected">
-      <Setter Property="Background" Value="#DCD8FF" />
-      <Setter Property="BorderBrush" Value="#8278D0" />
+      <Setter Property="Foreground" Value="#000000" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Background" Value="#B8B0FF" />
+      <Setter Property="BorderBrush" Value="#6252D1" />
     </Style>
     <Style Selector="TabItem:pointerover">
-      <Setter Property="Background" Value="#E4E4E4" />
+      <Setter Property="Background" Value="#D8D3FF" />
+    </Style>
+    <Style Selector="TabItem:selected:pointerover">
+      <Setter Property="Background" Value="#B8B0FF" />
+    </Style>
+    <Style Selector="TabControl.input-sections">
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="TabControl.input-sections TabItem">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="Medium" />
+      <Setter Property="MinHeight" Value="24" />
+      <Setter Property="Padding" Value="7,2" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="Background" Value="#D8D8D8" />
+      <Setter Property="BorderBrush" Value="#858585" />
+    </Style>
+    <Style Selector="TabControl.input-sections TabItem:selected">
+      <Setter Property="Foreground" Value="#000000" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Background" Value="#B8B0FF" />
+      <Setter Property="BorderBrush" Value="#6252D1" />
+    </Style>
+    <Style Selector="TabControl.input-sections TabItem:pointerover">
+      <Setter Property="Background" Value="#D8D3FF" />
+    </Style>
+    <Style Selector="TabControl.input-sections TabItem:selected:pointerover">
+      <Setter Property="Background" Value="#B8B0FF" />
+    </Style>
+    <Style Selector="TabControl.input-sections TabItem:disabled">
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Foreground" Value="#555555" />
+      <Setter Property="Background" Value="#F3F3F3" />
+      <Setter Property="BorderBrush" Value="#C8C8C8" />
     </Style>
     <Style Selector="RadioButton">
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="FontWeight" Value="Medium" />
     </Style>
     <Style Selector="CheckBox">
-      <Setter Property="Foreground" Value="#202020" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="FontWeight" Value="Medium" />
     </Style>
   </Window.Styles>
 
@@ -177,55 +250,190 @@
             </Grid>
           </GroupBox>
 
-          <Border
+          <TabControl
               Grid.Row="1"
               Margin="0,10,0,0"
-              BorderBrush="#999999"
-              BorderThickness="1">
-            <Grid RowDefinitions="Auto,*">
-              <Border Grid.Row="0" Background="#D9D9F5" Padding="8,5">
-                <Grid ColumnDefinitions="110,*,190" ColumnSpacing="6">
-                  <TextBlock Text="Action" />
-                  <TextBlock Grid.Column="1" Text="Keyboard" />
-                  <TextBlock Grid.Column="2" Text="Pad" />
-                </Grid>
-              </Border>
+              Classes="input-sections">
+            <TabItem Header="Key Config">
+              <Grid Margin="0,6,0,0" RowDefinitions="Auto,*">
+                <TextBlock
+                    x:Name="ControllerLayoutStatusText"
+                    Foreground="#0000B8"
+                    FontSize="13"
+                    Text="Controller button layout: (No pad device detected)" />
 
-              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding KeyBindingRows}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
+                <Border
+                    Grid.Row="1"
+                    Margin="0,4,0,0"
+                    BorderBrush="#999999"
+                    BorderThickness="1">
+                  <Grid RowDefinitions="Auto,*">
+                    <Grid Grid.Row="0" ColumnDefinitions="110,180,*">
                       <Border
-                          BorderBrush="#B8B8B8"
-                          BorderThickness="0,0,0,1"
-                          Padding="6,3">
-                        <Grid ColumnDefinitions="104,*,190" ColumnSpacing="6">
-                          <TextBlock
-                              VerticalAlignment="Center"
-                              Text="{Binding Action}" />
-                          <Button
-                              Grid.Column="1"
-                              Width="110"
-                              HorizontalAlignment="Left"
-                              HorizontalContentAlignment="Center"
-                              Content="{Binding SelectedKey.Label}"
-                              Click="RemapKeyClick" />
-                          <Button
-                              Grid.Column="2"
-                              Width="130"
-                              HorizontalAlignment="Left"
-                              HorizontalContentAlignment="Center"
-                              Content="{Binding SelectedPad.Label}"
-                              IsEnabled="{Binding IsPadEnabled}"
-                              Click="RemapPadClick" />
-                        </Grid>
+                          Background="#D9D9F5"
+                          BorderBrush="#A8A8A8"
+                          BorderThickness="0,0,1,1"
+                          Padding="8,5">
+                        <TextBlock FontWeight="SemiBold" Text="Action" />
                       </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                      <Border
+                          Grid.Column="1"
+                          Background="#D9D9F5"
+                          BorderBrush="#A8A8A8"
+                          BorderThickness="0,0,1,1"
+                          Padding="8,5">
+                        <TextBlock FontWeight="SemiBold" Text="Keyboard" />
+                      </Border>
+                      <Border
+                          Grid.Column="2"
+                          Background="#D9D9F5"
+                          BorderBrush="#A8A8A8"
+                          BorderThickness="0,0,0,1"
+                          Padding="8,5">
+                        <TextBlock FontWeight="SemiBold" Text="Pad" />
+                      </Border>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                      <ItemsControl ItemsSource="{Binding KeyBindingRows}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <Grid ColumnDefinitions="110,180,*">
+                              <Border
+                                  BorderBrush="#B8B8B8"
+                                  BorderThickness="0,0,1,1"
+                                  Padding="8,4">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Text="{Binding Action}" />
+                              </Border>
+                              <Border
+                                  Grid.Column="1"
+                                  BorderBrush="#B8B8B8"
+                                  BorderThickness="0,0,1,1"
+                                  Padding="8,3">
+                                <Button
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Content="{Binding SelectedKey.Label}"
+                                    Click="RemapKeyClick" />
+                              </Border>
+                              <Border
+                                  Grid.Column="2"
+                                  BorderBrush="#B8B8B8"
+                                  BorderThickness="0,0,0,1"
+                                  Padding="8,3">
+                                <Button
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Content="{Binding SelectedPad.Label}"
+                                    IsEnabled="{Binding IsPadEnabled}"
+                                    Click="RemapPadClick" />
+                              </Border>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </ScrollViewer>
+                  </Grid>
+                </Border>
+              </Grid>
+            </TabItem>
+
+            <TabItem Header="Input Devices">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="8,10,8,8" Spacing="14">
+                  <StackPanel Spacing="5">
+                    <TextBlock FontWeight="SemiBold" Text="Keyboard" />
+                    <Grid
+                        Margin="22,0,0,0"
+                        ColumnDefinitions="110,*,90,*"
+                        RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                      <TextBlock Text="Product name:" />
+                      <TextBlock
+                          Grid.Column="1"
+                          Grid.ColumnSpan="3"
+                          Text="{Binding InputDevices.Keyboard.ProductName}" />
+                      <TextBlock Grid.Row="1" Text="Instance name:" />
+                      <TextBlock
+                          Grid.Row="1"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="3"
+                          Text="{Binding InputDevices.Keyboard.InstanceName}" />
+                      <TextBlock Grid.Row="2" Text="Product GUID:" />
+                      <TextBlock
+                          Grid.Row="2"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="3"
+                          Text="{Binding InputDevices.Keyboard.ProductGuid}" />
+                      <TextBlock Grid.Row="3" Text="Instance GUID:" />
+                      <TextBlock
+                          Grid.Row="3"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="3"
+                          Text="{Binding InputDevices.Keyboard.InstanceGuid}" />
+                      <TextBlock Grid.Row="4" Text="Vendor ID:" />
+                      <TextBlock
+                          Grid.Row="4"
+                          Grid.Column="1"
+                          Text="{Binding InputDevices.Keyboard.VendorId}" />
+                      <TextBlock Grid.Row="4" Grid.Column="2" Text="Product ID:" />
+                      <TextBlock
+                          Grid.Row="4"
+                          Grid.Column="3"
+                          Text="{Binding InputDevices.Keyboard.ProductId}" />
+                    </Grid>
+                  </StackPanel>
+
+                  <StackPanel Spacing="5">
+                    <TextBlock FontWeight="SemiBold" Text="Mouse" />
+                    <Grid
+                        Margin="22,0,0,0"
+                        ColumnDefinitions="110,*,90,*"
+                        RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                      <TextBlock Text="Product name:" />
+                      <TextBlock
+                          Grid.Column="1"
+                          Grid.ColumnSpan="3"
+                          Text="{Binding InputDevices.Mouse.ProductName}" />
+                      <TextBlock Grid.Row="1" Text="Instance name:" />
+                      <TextBlock
+                          Grid.Row="1"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="3"
+                          Text="{Binding InputDevices.Mouse.InstanceName}" />
+                      <TextBlock Grid.Row="2" Text="Product GUID:" />
+                      <TextBlock
+                          Grid.Row="2"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="3"
+                          Text="{Binding InputDevices.Mouse.ProductGuid}" />
+                      <TextBlock Grid.Row="3" Text="Instance GUID:" />
+                      <TextBlock
+                          Grid.Row="3"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="3"
+                          Text="{Binding InputDevices.Mouse.InstanceGuid}" />
+                      <TextBlock Grid.Row="4" Text="Vendor ID:" />
+                      <TextBlock
+                          Grid.Row="4"
+                          Grid.Column="1"
+                          Text="{Binding InputDevices.Mouse.VendorId}" />
+                      <TextBlock Grid.Row="4" Grid.Column="2" Text="Product ID:" />
+                      <TextBlock
+                          Grid.Row="4"
+                          Grid.Column="3"
+                          Text="{Binding InputDevices.Mouse.ProductId}" />
+                    </Grid>
+                  </StackPanel>
+                </StackPanel>
               </ScrollViewer>
-            </Grid>
-          </Border>
+            </TabItem>
+
+            <TabItem
+                Header="Controller Calibration"
+                IsEnabled="False" />
+          </TabControl>
         </Grid>
       </TabItem>
 
@@ -253,8 +461,8 @@
           Foreground="#666666" />
       <StackPanel
           Grid.Row="1"
-          Margin="8,0,0,0"
-          HorizontalAlignment="Left"
+          Margin="0,0,8,0"
+          HorizontalAlignment="Right"
           Orientation="Horizontal"
           Spacing="10">
         <Button
@@ -262,7 +470,9 @@
             MinHeight="30"
             Padding="10,4"
             HorizontalContentAlignment="Center"
-            FontSize="13"
+            VerticalContentAlignment="Center"
+            FontSize="14"
+            FontWeight="Medium"
             Content="Start Game"
             Click="StartGameClick" />
         <Button
@@ -270,7 +480,9 @@
             MinHeight="30"
             Padding="10,4"
             HorizontalContentAlignment="Center"
-            FontSize="13"
+            VerticalContentAlignment="Center"
+            FontSize="14"
+            FontWeight="Medium"
             Content="OK"
             Click="OkClick" />
         <Button
@@ -278,7 +490,9 @@
             MinHeight="30"
             Padding="10,4"
             HorizontalContentAlignment="Center"
-            FontSize="13"
+            VerticalContentAlignment="Center"
+            FontSize="14"
+            FontWeight="Medium"
             Content="Cancel"
             Click="CancelClick" />
       </StackPanel>

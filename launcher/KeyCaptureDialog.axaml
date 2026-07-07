@@ -11,7 +11,42 @@
     Background="#F4F4F4"
     Foreground="#202020">
 
-  <Grid Margin="12" RowDefinitions="*,Auto">
+  <Window.Styles>
+    <Style Selector="Button.dialog-action">
+      <Setter Property="Background" Value="#F2F2F2" />
+      <Setter Property="Foreground" Value="#0A0A0A" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="Medium" />
+      <Setter Property="BorderBrush" Value="#707070" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="14,5" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border
+              Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              CornerRadius="2"
+              Padding="{TemplateBinding Padding}">
+            <ContentPresenter
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Content="{TemplateBinding Content}" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="Button.dialog-action:pointerover">
+      <Setter Property="Background" Value="#E5E2FF" />
+      <Setter Property="BorderBrush" Value="#6252D1" />
+    </Style>
+    <Style Selector="Button.dialog-action:pressed">
+      <Setter Property="Background" Value="#D0CBFF" />
+      <Setter Property="BorderBrush" Value="#4F43B8" />
+    </Style>
+  </Window.Styles>
+
+  <Grid Margin="14" RowDefinitions="*,Auto">
     <TextBlock
         x:Name="PromptText"
         VerticalAlignment="Center"
@@ -19,9 +54,10 @@
         Text="Press any key (Keyboard)..." />
 
     <Button
+        Classes="dialog-action"
         Grid.Row="1"
-        Width="90"
-        MinHeight="28"
+        Width="92"
+        MinHeight="30"
         HorizontalAlignment="Center"
         HorizontalContentAlignment="Center"
         Content="Cancel"
