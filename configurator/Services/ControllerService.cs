@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
-using Gian07.Launcher;
+using Gian07.Configurator;
 
-namespace Gian07.Launcher.Services;
+namespace Gian07.Configurator.Services;
 
 internal static class ControllerService
 {

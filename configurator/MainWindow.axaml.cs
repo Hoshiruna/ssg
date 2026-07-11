@@ -6,9 +6,9 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
-using Gian07.Launcher.Services;
+using Gian07.Configurator.Services;
 
-namespace Gian07.Launcher;
+namespace Gian07.Configurator;
 
 public sealed partial class MainWindow : Window
 {
@@ -27,7 +27,7 @@ public sealed partial class MainWindow : Window
         new(12, "1920 × 1440 (3×)")
     ];
 
-    private readonly LauncherSettings _settings;
+    private readonly ConfiguratorSettings _settings;
     private GameConfig _config = new();
     private bool _controllerDetected;
 
@@ -40,7 +40,7 @@ public sealed partial class MainWindow : Window
         DataContext = this;
 
         WindowSizeControl.ItemsSource = ScaleOptions;
-        _settings = LauncherSettingsStore.Load();
+        _settings = ConfiguratorSettingsStore.Load();
         ExecutablePathControl.Text = FindInitialExecutable(_settings.GameExecutable);
         RefreshControllers();
         LoadSelectedConfiguration();
@@ -182,7 +182,7 @@ public sealed partial class MainWindow : Window
             CaptureControls();
             GameConfigFile.Save(executable, _config);
             _settings.GameExecutable = ExecutablePathControl.Text?.Trim() ?? string.Empty;
-            LauncherSettingsStore.Save(_settings);
+            ConfiguratorSettingsStore.Save(_settings);
             return true;
         }
         catch (Exception exception) when (

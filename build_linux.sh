@@ -1,12 +1,12 @@
 #!/bin/sh
 
 case "${1:-}" in
-	LauncherDebug|launcher-debug)
-		exec dotnet build launcher/GIAN07.Launcher.csproj \
+	ConfiguratorDebug|configurator-debug)
+		exec dotnet build configurator/GIAN07.Configurator.csproj \
 			--configuration Debug --nologo
 		;;
-	Launcher|launcher)
-		exec dotnet publish launcher/GIAN07.Launcher.csproj \
+	Configurator|configurator)
+		exec dotnet publish configurator/GIAN07.Configurator.csproj \
 			--configuration Release \
 			--runtime linux-x64 \
 			--self-contained true \
@@ -16,7 +16,7 @@ case "${1:-}" in
 			-p:PublishTrimmed=false \
 			-p:DebugSymbols=false \
 			-p:DebugType=None \
-			--output bin/launcher/Release/linux-x64 \
+			--output bin/configurator/Release/linux-x64 \
 			--nologo
 		;;
 esac
@@ -36,20 +36,20 @@ case "${1:-all}" in
 	Release|release|bin/GIAN07)
 		cmake --build --preset linux-release
 		;;
-	LauncherDebug|launcher-debug)
-		cmake --build --preset linux-launcher-debug
+	ConfiguratorDebug|configurator-debug)
+		cmake --build --preset linux-configurator-debug
 		;;
-	Launcher|launcher)
-		cmake --build --preset linux-launcher-release
+	Configurator|configurator)
+		cmake --build --preset linux-configurator-release
 		;;
 	all)
 		cmake --build --preset linux-debug &&
 		cmake --build --preset linux-release &&
-		cmake --build --preset linux-launcher-debug &&
-		cmake --build --preset linux-launcher-release
+		cmake --build --preset linux-configurator-debug &&
+		cmake --build --preset linux-configurator-release
 		;;
 	*)
-		echo "Usage: $0 [Debug|Release|LauncherDebug|Launcher|all]" >&2
+		echo "Usage: $0 [Debug|Release|ConfiguratorDebug|Configurator|all]" >&2
 		exit 2
 		;;
 esac

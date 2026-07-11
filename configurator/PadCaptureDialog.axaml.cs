@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using Gian07.Launcher.Services;
+using Gian07.Configurator.Services;
 
-namespace Gian07.Launcher;
+namespace Gian07.Configurator;
 
 public sealed partial class PadCaptureDialog : Window
 {

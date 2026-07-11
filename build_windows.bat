@@ -1,12 +1,12 @@
 @echo off
 setlocal
 
-if /I "%~1" == "LauncherDebug" goto build_launcher_debug
-if /I "%~1" == "bin/GIAN07_launcherd.exe" goto build_launcher_debug
-if /I "%~1" == "bin/launcher/Debug/GIAN07_launcher.exe" goto build_launcher_debug
-if /I "%~1" == "Launcher" goto build_launcher_release
-if /I "%~1" == "bin/GIAN07_launcher.exe" goto build_launcher_release
-if /I "%~1" == "bin/launcher/Release/GIAN07_launcher.exe" goto build_launcher_release
+if /I "%~1" == "ConfiguratorDebug" goto build_configurator_debug
+if /I "%~1" == "bin/GIAN07_configuratord.exe" goto build_configurator_debug
+if /I "%~1" == "bin/configurator/Debug/GIAN07_configurator.exe" goto build_configurator_debug
+if /I "%~1" == "Configurator" goto build_configurator_release
+if /I "%~1" == "bin/GIAN07_configurator.exe" goto build_configurator_release
+if /I "%~1" == "bin/configurator/Release/GIAN07_configurator.exe" goto build_configurator_release
 
 if "%VCINSTALLDIR%" == "" (
 	echo Error: The build must be run from within Visual Studio's `x64_x86 Cross Tools Command Prompt`.
@@ -33,13 +33,13 @@ if /I "%BUILD_CONFIG%" == "Debug" goto build_debug
 if /I "%BUILD_CONFIG%" == "bin/GIAN07d.exe" goto build_debug
 if /I "%BUILD_CONFIG%" == "Release" goto build_release
 if /I "%BUILD_CONFIG%" == "bin/GIAN07.exe" goto build_release
-if /I "%BUILD_CONFIG%" == "LauncherDebug" goto build_launcher_debug
-if /I "%BUILD_CONFIG%" == "bin/GIAN07_launcherd.exe" goto build_launcher_debug
-if /I "%BUILD_CONFIG%" == "Launcher" goto build_launcher_release
-if /I "%BUILD_CONFIG%" == "bin/GIAN07_launcher.exe" goto build_launcher_release
+if /I "%BUILD_CONFIG%" == "ConfiguratorDebug" goto build_configurator_debug
+if /I "%BUILD_CONFIG%" == "bin/GIAN07_configuratord.exe" goto build_configurator_debug
+if /I "%BUILD_CONFIG%" == "Configurator" goto build_configurator_release
+if /I "%BUILD_CONFIG%" == "bin/GIAN07_configurator.exe" goto build_configurator_release
 if /I "%BUILD_CONFIG%" == "all" goto build_all
 
-echo Usage: %~nx0 [Debug^|Release^|LauncherDebug^|Launcher^|all]
+echo Usage: %~nx0 [Debug^|Release^|ConfiguratorDebug^|Configurator^|all]
 exit /b 2
 
 :build_debug
@@ -50,12 +50,12 @@ exit /b %errorlevel%
 cmake --build --preset windows-release
 exit /b %errorlevel%
 
-:build_launcher_debug
-dotnet build launcher\GIAN07.Launcher.csproj --configuration Debug --nologo
+:build_configurator_debug
+dotnet build configurator\GIAN07.Configurator.csproj --configuration Debug --nologo
 exit /b %errorlevel%
 
-:build_launcher_release
-dotnet publish launcher\GIAN07.Launcher.csproj ^
+:build_configurator_release
+dotnet publish configurator\GIAN07.Configurator.csproj ^
 	--configuration Release ^
 	-p:PublishProfile=WindowsSingleFile ^
 	--nologo
@@ -66,7 +66,7 @@ cmake --build --preset windows-debug
 if %errorlevel% neq 0 exit /b %errorlevel%
 cmake --build --preset windows-release
 if %errorlevel% neq 0 exit /b %errorlevel%
-cmake --build --preset windows-launcher-debug
+cmake --build --preset windows-configurator-debug
 if %errorlevel% neq 0 exit /b %errorlevel%
-cmake --build --preset windows-launcher-release
+cmake --build --preset windows-configurator-release
 exit /b %errorlevel%

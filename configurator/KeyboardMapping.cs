@@ -1,6 +1,6 @@
 using Avalonia.Input;
 
-namespace Gian07.Launcher;
+namespace Gian07.Configurator;
 
 internal static class KeyboardMapping
 {

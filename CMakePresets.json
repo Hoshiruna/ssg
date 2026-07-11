@@ -70,29 +70,29 @@
 			"targets": ["GIAN07"]
 		},
 		{
-			"name": "windows-launcher-debug",
-			"displayName": "Windows Launcher (Debug)",
+			"name": "windows-configurator-debug",
+			"displayName": "Windows Configurator (Debug)",
 			"configurePreset": "windows-msvc",
 			"configuration": "Debug",
-			"targets": ["GIAN07_launcher"]
+			"targets": ["GIAN07_configurator"]
 		},
 		{
-			"name": "windows-launcher-release",
-			"displayName": "Windows Launcher (Release)",
+			"name": "windows-configurator-release",
+			"displayName": "Windows Configurator (Release)",
 			"configurePreset": "windows-msvc",
 			"configuration": "Release",
-			"targets": ["GIAN07_launcher"]
+			"targets": ["GIAN07_configurator"]
 		},
 		{
 			"name": "windows-all-debug",
-			"displayName": "Windows Game + Launcher (Debug)",
+			"displayName": "Windows Game + Configurator (Debug)",
 			"configurePreset": "windows-msvc",
 			"configuration": "Debug",
 			"targets": ["SSG_all"]
 		},
 		{
 			"name": "windows-all-release",
-			"displayName": "Windows Game + Launcher (Release)",
+			"displayName": "Windows Game + Configurator (Release)",
 			"configurePreset": "windows-msvc",
 			"configuration": "Release",
 			"targets": ["SSG_all"]
@@ -110,18 +110,18 @@
 			"targets": ["GIAN07"]
 		},
 		{
-			"name": "linux-launcher-debug",
-			"displayName": "Linux Launcher (Debug)",
+			"name": "linux-configurator-debug",
+			"displayName": "Linux Configurator (Debug)",
 			"configurePreset": "linux",
 			"configuration": "Debug",
-			"targets": ["GIAN07_launcher"]
+			"targets": ["GIAN07_configurator"]
 		},
 		{
-			"name": "linux-launcher-release",
-			"displayName": "Linux Launcher (Release)",
+			"name": "linux-configurator-release",
+			"displayName": "Linux Configurator (Release)",
 			"configurePreset": "linux",
 			"configuration": "Release",
-			"targets": ["GIAN07_launcher"]
+			"targets": ["GIAN07_configurator"]
 		}
 	]
 }

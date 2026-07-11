@@ -1,8 +1,8 @@
 <Window
-    x:Class="Gian07.Launcher.MainWindow"
+    x:Class="Gian07.Configurator.MainWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="秋霜玉 Launcher"
+    Title="秋霜玉 Configurator"
     Width="540"
     Height="650"
     MinWidth="520"

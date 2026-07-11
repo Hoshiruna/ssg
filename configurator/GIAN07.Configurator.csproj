@@ -2,13 +2,13 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>GIAN07_launcher</AssemblyName>
-    <RootNamespace>Gian07.Launcher</RootNamespace>
+    <AssemblyName>GIAN07_configurator</AssemblyName>
+    <RootNamespace>Gian07.Configurator</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
-    <BaseOutputPath>..\bin\launcher\</BaseOutputPath>
+    <BaseOutputPath>..\bin\configurator\</BaseOutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 

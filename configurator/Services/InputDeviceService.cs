@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Gian07.Launcher.Services;
+namespace Gian07.Configurator.Services;
 
 public sealed record InputDeviceInfo(
     string ProductName,

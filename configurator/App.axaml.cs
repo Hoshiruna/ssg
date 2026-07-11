@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace Gian07.Launcher;
+namespace Gian07.Configurator;
 
 public sealed partial class App : Application
 {

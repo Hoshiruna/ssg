@@ -50,7 +50,7 @@ On Windows:
 ```sh
 build_windows.bat bin/GIAN07.exe  # builds only the modern Release binary
 build_windows.bat bin/GIAN07d.exe # builds only the modern Debug binary
-build_windows.bat bin/GIAN07_launcher.exe # builds only the configuration launcher
+build_windows.bat bin/GIAN07_configurator.exe # builds only the configurator
 build_windows.bat                 # builds all binaries, including the vintage ones
 ```
 

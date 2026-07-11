@@ -1,13 +1,9 @@
 .tup/
 .vscode/settings.json
 .vs/
+.vscode/
 out/
 bin/
 obj/
 out/
 tup.config
-<<<<<<< HEAD
-
-=======
-.vs/
->>>>>>> origin/master

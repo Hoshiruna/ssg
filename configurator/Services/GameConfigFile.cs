@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
 using System.Text;
 
-namespace Gian07.Launcher.Services;
+namespace Gian07.Configurator.Services;
 
 internal sealed class GameConfig
 {

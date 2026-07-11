@@ -1,25 +1,25 @@
 using System.Text.Json;
 
-namespace Gian07.Launcher.Services;
+namespace Gian07.Configurator.Services;
 
-internal sealed class LauncherSettings
+internal sealed class ConfiguratorSettings
 {
     public string GameExecutable { get; set; } = string.Empty;
 }
 
-internal static class LauncherSettingsStore
+internal static class ConfiguratorSettingsStore
 {
-    private const string SettingsFileName = "launcher.json";
+    private const string SettingsFileName = "configurator.json";
 
-    public static LauncherSettings Load()
+    public static ConfiguratorSettings Load()
     {
         var path = GetSettingsPath();
         try
         {
             if (File.Exists(path))
             {
-                return JsonSerializer.Deserialize<LauncherSettings>(File.ReadAllText(path))
-                    ?? new LauncherSettings();
+                return JsonSerializer.Deserialize<ConfiguratorSettings>(File.ReadAllText(path))
+                    ?? new ConfiguratorSettings();
             }
         }
         catch (IOException)
@@ -32,13 +32,13 @@ internal static class LauncherSettingsStore
         {
         }
 
-        return new LauncherSettings
+        return new ConfiguratorSettings
         {
             GameExecutable = ReadLegacyExecutablePath()
         };
     }
 
-    public static void Save(LauncherSettings settings)
+    public static void Save(ConfiguratorSettings settings)
     {
         var path = GetSettingsPath();
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -62,7 +62,7 @@ internal static class LauncherSettingsStore
 
     private static string ReadLegacyExecutablePath()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "GIAN07_launcher.ini");
+        var path = Path.Combine(AppContext.BaseDirectory, "GIAN07_configurator.ini");
         try
         {
             if (!File.Exists(path))

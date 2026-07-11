@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 4.0.3)
+cmake_minimum_required(VERSION 4.0.3)
 
 # CMake's import-std support is still gated by a version-specific UUID.
 if(CMAKE_VERSION VERSION_LESS "4.3")
@@ -169,16 +169,16 @@ endif()
 find_program(DOTNET_EXECUTABLE dotnet)
 if(DOTNET_EXECUTABLE)
 	if(WIN32)
-		set(SSG_LAUNCHER_RUNTIME "win-x64")
+		set(SSG_CONFIGURATOR_RUNTIME "win-x64")
 	else()
-		set(SSG_LAUNCHER_RUNTIME "linux-x64")
+		set(SSG_CONFIGURATOR_RUNTIME "linux-x64")
 	endif()
-	add_custom_target(GIAN07_launcher
+	add_custom_target(GIAN07_configurator
 		COMMAND
 			"${DOTNET_EXECUTABLE}" publish
-			"${CMAKE_SOURCE_DIR}/launcher/GIAN07.Launcher.csproj"
+			"${CMAKE_SOURCE_DIR}/configurator/GIAN07.Configurator.csproj"
 			--configuration "$<CONFIG>"
-			--runtime "${SSG_LAUNCHER_RUNTIME}"
+			--runtime "${SSG_CONFIGURATOR_RUNTIME}"
 			--self-contained true
 			-p:PublishSingleFile=true
 			-p:IncludeNativeLibrariesForSelfExtract=true
@@ -187,18 +187,18 @@ if(DOTNET_EXECUTABLE)
 			-p:DebugSymbols=false
 			-p:DebugType=None
 			--output
-			"${CMAKE_SOURCE_DIR}/bin/launcher/$<CONFIG>/${SSG_LAUNCHER_RUNTIME}"
+			"${CMAKE_SOURCE_DIR}/bin/configurator/$<CONFIG>/${SSG_CONFIGURATOR_RUNTIME}"
 			--nologo
 		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-		COMMENT "Publishing the Avalonia configuration launcher as one file"
+		COMMENT "Publishing the Avalonia configurator as one file"
 		USES_TERMINAL
 	)
 
 	add_custom_target(SSG_all)
-	add_dependencies(SSG_all GIAN07 GIAN07_launcher)
+	add_dependencies(SSG_all GIAN07 GIAN07_configurator)
 else()
 	message(STATUS
-		"dotnet was not found; the GIAN07_launcher and SSG_all targets are unavailable.")
+		"dotnet was not found; the GIAN07_configurator and SSG_all targets are unavailable.")
 endif()
 
 install(TARGETS GIAN07 RUNTIME DESTINATION bin)

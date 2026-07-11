@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-namespace Gian07.Launcher;
+namespace Gian07.Configurator;
 
 public sealed partial class KeyCaptureDialog : Window
 {

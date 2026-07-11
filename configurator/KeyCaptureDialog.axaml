@@ -1,5 +1,5 @@
 <Window
-    x:Class="Gian07.Launcher.KeyCaptureDialog"
+    x:Class="Gian07.Configurator.KeyCaptureDialog"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Key remap"
