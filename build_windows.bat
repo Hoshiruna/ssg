@@ -1,8 +1,9 @@
 @echo off
 
-call %~dp0hatoyama\configure_windows.bat
+call "%~dp0hatoyama\configure_windows.bat"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-sh %~dp0hatoyama\version_from_git.sh
+sh "%~dp0hatoyama\version_from_git.sh"
+if %errorlevel% neq 0 exit /b %errorlevel%
 tup %*
 exit /b

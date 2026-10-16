@@ -36,9 +36,25 @@ To build:
 
 The build is driven by `build_linux.sh`, which sets up the required submodules and environment variables for Tup.
 
+Install Git, Tup, `pkg-config`, and the development packages for SDL3,
+Fontconfig, WebP, Ogg, Pango/Cairo, and Vorbis (including `vorbisfile`).
+Package names vary by distribution. BLAKE3 can be installed globally; otherwise, the build process will automatically obtain bundled versions.
+The first build requires an internet connection to initialize the necessary Git submodules.
+
 Both GCC ≥15 and Clang ≥18 are supported. The build process honors the `CC` environment variable or otherwise falls back on your system's default C/C++ compiler indicated by the `cc` binary, picking the respective toolchain depending on that compiler's `--version` string.
 
 Use `install_linux.sh` to copy a compiled release build to its standard install locations.
+
+Run the build and installation scripts in the repository's root directory. The installation requires an application ID, for example:
+
+```sh
+APP_ID=GIAN07 PATH_SKELETON=/usr/share/skel ./build_linux.sh
+./install_linux.sh GIAN07
+```
+
+The default installation prefix is `/usr`; you will typically need to elevate privileges to proceed with the installation.
+Set `ROOT` to change the installation prefix, and set `PATH_SKELETON` to change the resource skeleton directory.
+Use the same `APP_ID` and `PATH_SKELETON` during both building and installation.
 
 ### Filtering build outputs
 
@@ -64,6 +80,10 @@ On Linux:
 ```
 
 On FreeBSD (you may need to build [Tup](https://github.com/gittup/tup) from source, building with Clang is currently not supported):
+
+Install the same development libraries as the Linux version. The configuration script will search the `/usr/local/bin` directory for versions of GCC 14 and later,
+and will prioritize versions 15 and later, as there is a known issue in GCC 15 that affects this project.
+You can also explicitly set `CC` and `CXX` to the corresponding GCC toolchain.
 
 ```sh
 ./build_freebsd.sh bin/GIAN07  # builds only the Release binary

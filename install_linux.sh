@@ -5,7 +5,7 @@ if [ "$#" -lt 1 ]; then
 	exit 1
 fi
 
-set -x
+set -ex
 
 ROOT=${ROOT:-/usr}
 PATH_SKELETON=${PATH_SKELETON:-$ROOT/share/skel}

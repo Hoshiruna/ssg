@@ -9,11 +9,14 @@
 ensure_full_deps() {
 	root="$1"
 
-	[ ! -d "$root/.tup" ] && tup init
-	[ ! -f "$root/.tup/options" ] &&
-	echo "[updater]
+	if [ ! -d "$root/.tup" ]; then
+		tup init || exit
+	fi
+	if [ ! -f "$root/.tup/options" ]; then
+		echo "[updater]
 		full_deps = 1 ; Necessary to track compiler updates on Linux
-	" > "$root/.tup/options"
+		" > "$root/.tup/options" || exit
+	fi
 }
 
 # Prepares all libraries and runs all code generation steps for Unix targets,
@@ -49,5 +52,5 @@ configure_unix() {
 		"$hatoyama/submodules_check.sh" "$hatoyama/libs/BLAKE3" || exit;
 	}
 
-	"$hatoyama/version_from_git.sh"
+	"$hatoyama/version_from_git.sh" || exit
 }

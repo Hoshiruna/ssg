@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 submodule_init() {
 	git submodule init "$1"
@@ -42,7 +43,8 @@ submodule_init() {
 
 # `git submodule` is quite slow on Windows, so it's a good idea to just call it
 # a single time in the optimal case.
-git submodule status "$@" | while read -r line; do
+submodule_status=$(git submodule status "$@")
+while read -r line; do
 	case $line in
 		# Submodule not initialized?
 		"-"*)
@@ -68,4 +70,6 @@ git submodule status "$@" | while read -r line; do
 			exit 1
 			;;
 	esac
-done
+done <<EOF
+$submodule_status
+EOF
