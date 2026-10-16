@@ -40,7 +40,7 @@ uint32_t BIT_DEVICE_READ::GetBits(size_t bitcount)
 	}
 
 	if(((bitcount + 7) / 8) >= bytes_remaining) {
-		bitcount = std::min(((bytes_remaining * 8) - cursor.bit), bitcount);
+		if(bitcount > bytes_remaining * 8 - cursor.bit) return UINT32_MAX;
 	}
 	const auto window_size = (cursor.bit + bitcount);
 
@@ -71,7 +71,8 @@ std::optional<BUFFER_BORROWED> PACKFILE_READ::GetCompressed(
 		? packfile.size()
 		: size_t{ info[filno + 1].offset }
 	);
-	if((start >= packfile.size()) || (end > packfile.size())) {
+	if((start < sizeof(PBG_FILEHEAD) + info.size_bytes()) ||
+		(start >= packfile.size()) || (end > packfile.size()) || (end < start)) {
 		return std::nullopt;
 	}
 	return BUFFER_BORROWED{ packfile.subspan(start, (end - start)) };
@@ -91,7 +92,7 @@ BUFFER_OWNED PACKFILE_READ::MemExpand(fil_no_t filno) const
 	}
 
 	// Textbook LZSS.
-	std::array<uint8_t, (1 << LZSS_DICT_BITS)> dict;
+	std::array<uint8_t, (1 << LZSS_DICT_BITS)> dict{};
 	fil_size_t out_i = 0;
 
 	auto output = [&uncompressed, &dict, &out_i](uint8_t literal) {
@@ -102,19 +103,23 @@ BUFFER_OWNED PACKFILE_READ::MemExpand(fil_no_t filno) const
 
 	BIT_DEVICE_READ device = { maybe_compressed.value_or({}) };
 	while(out_i < info[filno].size_uncompressed) {
-		const bool is_literal = device.GetBit();
+		const auto is_literal = device.GetBits(1);
+		if(is_literal == UINT32_MAX) return nullptr;
 		if(is_literal) {
-			output(device.GetBits(8));
+			const auto literal = device.GetBits(8);
+			if(literal == UINT32_MAX) return nullptr;
+			output(static_cast<uint8_t>(literal));
 		} else {
 			auto seq_offset = device.GetBits(LZSS_DICT_BITS);
-			if(seq_offset == 0) {
-				break;
+			if(seq_offset == 0 || seq_offset == UINT32_MAX) {
+				return nullptr;
 			} else {
 				seq_offset--;
 			}
-			const auto seq_length = (
-				device.GetBits(LZSS_SEQ_BITS) + LZSS_SEQ_MIN
-			);
+			const auto encoded_length = device.GetBits(LZSS_SEQ_BITS);
+			if(encoded_length == UINT32_MAX) return nullptr;
+			const auto seq_length = encoded_length + LZSS_SEQ_MIN;
+			if(seq_length > size_uncompressed - out_i) return nullptr;
 			for(auto i = decltype(seq_length){0}; i < seq_length; i++) {
 				output(dict[seq_offset++ & LZSS_DICT_MASK]);
 			}

@@ -39,6 +39,7 @@ private:
 	uint32_t GameCount;
 
 	uint8_t GameStage;
+	uint8_t EndCommand = 0;
 
 	// ＳＣＬに関する情報
 	SCL_INFO SclInfo;
@@ -64,6 +65,8 @@ public:
 	bool Set(BUFFER_OWNED&& data, uint8_t stage);
 
 	void Move(INPUT_BITS input);
+
+	uint8_t GetEndCommand() const { return EndCommand; }
 
 	auto Number(void) const {
 		return GameStage;

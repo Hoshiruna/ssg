@@ -21,6 +21,7 @@ bool C_STAGE::Set(BUFFER_OWNED&& data, uint8_t stage)
 	SCL_Now = SCL_Head.get();
 	GameCount = 0;
 	GameStage = stage;
+	EndCommand = 0;
 	SclInfo.MsgFlag = false;
 	SclInfo.ReturnFlag = false;
 	Effect3D.Set(EFFECT3D_NONE);
@@ -180,6 +181,7 @@ void C_STAGE::Move(INPUT_BITS input)
 		case(SCL_STAGECLEAR):
 		case(SCL_GAMECLEAR):
 		case(SCL_EXTRACLEAR):
+			EndCommand = cmd[0];
 			Hooks.Stage_Clear(&Hooks);
 			[[fallthrough]];
 		case(SCL_END): // カウントも変更させずにリターンする

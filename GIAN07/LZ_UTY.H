@@ -9,12 +9,9 @@
 #include "hatoyama/app/file.h"
 #include "hatoyama/logic/buffer.h"
 
-struct BIT_DEVICE_WRITE {
-	BUFFER_GROWABLE buffer;
-	uint8_t bit_cursor:3 = 0;
+#include "ssg/internal/LZ.hpp"
 
-	void PutBit(uint8_t bit);
-	void PutBits(uint32_t bits,unsigned int bitcount);
+struct BIT_DEVICE_WRITE : BIT_BUFFER_WRITE {
 	bool Write(const char8_t *s) const;
 };
 

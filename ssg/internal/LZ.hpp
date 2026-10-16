@@ -86,3 +86,13 @@ struct HATOYAMA_API PACKFILE_READ {
 };
 
 HATOYAMA_API PACKFILE_READ FilStartR(BUFFER_BORROWED packfile);
+
+struct HATOYAMA_API BIT_BUFFER_WRITE {
+	BUFFER_GROWABLE buffer;
+	uint8_t bit_cursor:3 = 0;
+
+	void PutBit(uint8_t bit);
+	void PutBits(uint32_t bits,unsigned int bitcount);
+};
+
+HATOYAMA_API BUFFER_GROWABLE FilEncode(std::span<const BUFFER_BORROWED> files);
