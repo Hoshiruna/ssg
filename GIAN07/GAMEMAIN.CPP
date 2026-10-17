@@ -22,12 +22,15 @@
 #include "SCROLL.H"
 #include "WindowCtrl.h" // ウィンドウ定義
 #include "WindowSys.h"
+#include "ssg/Replay.hpp"
+#include "ssg/SCL.h"
 #include "ssg/Sound.h"
+#include "hatoyama/app/file.h"
+#include "hatoyama/app/time.h"
 #include "hatoyama/engine/bgm.h"
 #include "hatoyama/engine/debug.h"
 #include "hatoyama/engine/snd.h"
 #include "hatoyama/engine/text_backend.h"
-#include "hatoyama/app/time.h"
 #include "hatoyama/logic/ut_math.h"
 #include "obj/version.h"
 
@@ -131,6 +134,199 @@ uint8_t CurrentLevel()
 }
 
 bool InputLocked;
+
+
+// Records full-run inputs, stage checkpoints, and continues, then saves a DAT.
+namespace ReplayRecording {
+Replay::FullData Data;
+uint64_t StepCount = 0;
+bool Active = false;
+bool GameOverActive = false;
+uint8_t PendingEndCommand = 0;
+decltype(HOOKS::SCL_Op) ForwardSCL = nullptr;
+
+Replay::Checkpoint CaptureCheckpoint(void)
+{
+	return {
+		.StepCount = StepCount,
+		.Score = SSG.Viv.score,
+		.Seed = SSG.RNG.seed,
+		.Rank = SSG.PlayRank.Rank(),
+		.Stage = SSG.Stage.Number(),
+		.Lives = SSG.Viv.left,
+		.Bombs = SSG.Viv.bomb,
+		.Power = SSG.Viv.exp,
+	};
+}
+
+bool Save(void)
+{
+	const auto encoded = Replay::FullEncode(Data);
+	if(encoded.empty()) {
+		return false;
+	}
+
+	const auto time = Time_NowLocal();
+	for(unsigned sequence = 0; sequence < 10000; sequence++) {
+		char filename[128];
+		sprintf(
+			filename, "Replay_%04u%02u%02u_%02u%02u%02u_%04u.DAT",
+			unsigned(time.year), unsigned(time.month), unsigned(time.day),
+			unsigned(time.hour), unsigned(time.minute), unsigned(time.second),
+			sequence
+		);
+		const std::string temporary = std::string(filename) + ".tmp";
+		std::error_code error;
+		const bool exists = std::filesystem::exists(filename, error);
+		if(error) {
+			return false;
+		}
+		if(exists) {
+			continue;
+		}
+		const bool temporary_exists = std::filesystem::exists(temporary, error);
+		if(error) {
+			return false;
+		}
+		if(temporary_exists) {
+			continue;
+		}
+
+		if(!SDL_SaveFile(
+			std::bit_cast<const char8_t *>(temporary.c_str()),
+			encoded.data(), encoded.size()
+		)) {
+			std::filesystem::remove(temporary, error);
+			return false;
+		}
+		std::filesystem::rename(temporary, filename, error);
+		if(!error) {
+			return true;
+		}
+		std::filesystem::remove(temporary, error);
+		return false;
+	}
+	return false;
+}
+
+void Finish(Replay::EndReason reason)
+{
+	if(!Active) {
+		return;
+	}
+	Active = false;
+	Data.Records.push_back({
+		Replay::Operation::End, std::to_underlying(reason), CaptureCheckpoint()
+	});
+	if(!Save()) {
+		DebugOut(u8"Failed to save replay DAT.");
+	}
+	Data = {};
+}
+
+void Finish(void)
+{
+	Finish(GameOverActive ? Replay::EndReason::GameOver : Replay::EndReason::Quit);
+}
+
+bool CanRecord(void)
+{
+	// Leave space for a boundary checkpoint and the final record.
+	constexpr size_t RECORD_LIMIT = (
+		(256u * 1024u * 1024u) / sizeof(Replay::Record) - 2
+	);
+	if(Active && Data.Records.size() >= RECORD_LIMIT) {
+		Finish(Replay::EndReason::Quit);
+	}
+	return Active;
+}
+
+void RecordGameOver(void)
+{
+	if(Active) {
+		GameOverActive = true;
+	}
+}
+
+void RecordContinue(void)
+{
+	if(CanRecord()) {
+		Data.Records.push_back({ Replay::Operation::Continue, 0, {} });
+		GameOverActive = false;
+	}
+}
+
+void RecordGameOverFrame(void)
+{
+	if(CanRecord()) {
+		Data.Records.push_back({ Replay::Operation::GameOverFrame, 0, {} });
+		StepCount++;
+	}
+}
+
+void Init(uint8_t stage)
+{
+	Data = {};
+	Data.FirstStage = stage;
+	Data.Round = SSG.Round;
+	if(stage == STAGE_EXTRA) {
+		Data.GameMode = Replay::Mode::Extra;
+	} else if(ConfigDat.StageSelect.v || stage != 1) {
+		Data.GameMode = Replay::Mode::Practice;
+	} else {
+		Data.GameMode = Replay::Mode::Main;
+	}
+	StepCount = 0;
+	GameOverActive = false;
+	PendingEndCommand = 0;
+	Active = true;
+}
+
+void OnSCL(const uint8_t *command, bool8_t error, HOOKS *hooks)
+{
+	switch(command[0]) {
+	case SCL_STAGECLEAR:
+	case SCL_GAMECLEAR:
+	case SCL_EXTRACLEAR:
+		PendingEndCommand = command[0];
+		return;
+	default:
+		ForwardSCL(command, error, hooks);
+		return;
+	}
+}
+
+void Move(INPUT_BITS input)
+{
+	if(!CanRecord()) {
+		SSG.Move(input);
+		return;
+	}
+
+	// Match CLI timing: finish this frame before applying stage transitions.
+	ForwardSCL = SSG.Hooks.SCL_Op;
+	SSG.Hooks.SCL_Op = OnSCL;
+	SSG.Move(input);
+	SSG.Hooks.SCL_Op = ForwardSCL;
+	Data.Records.push_back({ Replay::Operation::Frame, input, {} });
+	StepCount++;
+
+	if(PendingEndCommand) {
+		const uint8_t command[] = { PendingEndCommand };
+		PendingEndCommand = 0;
+		Data.Records.push_back({
+			Replay::Operation::Checkpoint, 0, CaptureCheckpoint()
+		});
+		if(
+			Data.GameMode != Replay::Mode::Main ||
+			command[0] != SCL_STAGECLEAR || SSG.Stage.Number() >= STAGE_MAX
+		) {
+			Finish(Replay::EndReason::Clear);
+		}
+		ForwardSCL(command, false, &SSG.Hooks);
+	}
+}
+} // namespace ReplayRecording
 
 
 // スコアネーム表示の準備を行う //
@@ -469,6 +665,8 @@ void NameRegistProc(bool&)
 // お名前入力の初期化 //
 bool NameRegistInit(bool bNeedChgMusic)
 {
+	ReplayRecording::Finish();
+
 	const auto stage = SSG.Stage.Number();
 	const auto& Viv = SSG.Viv;
 	for(auto& it : CurrentName.Name) {
@@ -819,6 +1017,8 @@ extern void GameRestart(void)
 // ゲームから抜ける //
 extern bool GameExit(bool bNeedChgMusic)
 {
+	ReplayRecording::Finish();
+
 	GrpBackend_PixelAccessEnd();
 	TextObj.Clear();
 	GrpBackend_Clear();
@@ -864,12 +1064,14 @@ extern bool GameExit(bool bNeedChgMusic)
 // ゲームオーバーの前処理
 extern void GameOverInit(void)
 {
+	ReplayRecording::RecordGameOver();
 	GameMain = GameOverProc0;
 }
 
 // コンティニューを行う場合
 extern void GameContinue(void)
 {
+	ReplayRecording::RecordContinue();
 	SSG.RoundContinue();
 	GameMain = GameProc;
 }
@@ -943,6 +1145,7 @@ void GameOverProc0(bool&)
 {
 	switch(SSG.Viv.GameOverTimer) {
 	default:
+		ReplayRecording::RecordGameOverFrame();
 		SSG.MoveGameOver();
 		break;
 
@@ -1155,6 +1358,7 @@ void WeaponSelectProc(bool&)
 				return;
 			}
 
+			ReplayRecording::Init(WeaponSelectStage);
 			GameInit(GameProc);
 		return;
 
@@ -1350,7 +1554,7 @@ void GameMove(INPUT_BITS input)
 
 	ScrollMove();
 
-	SSG.Move(input);
+	ReplayRecording::Move(input); // Advance gameplay and record this frame.
 	CEffectMove();
 	ObjectLockMove();
 
