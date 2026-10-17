@@ -41,23 +41,23 @@ REPLAY_CLI_RET Simulate(
 	const auto t_load = SDL_GetTicksNS();
 	const auto replay_file = SDL_LoadFile(fn);
 	if(replay_file && Replay::FullIdentify(BUFFER_BORROWED{replay_file})) {
-		Replay::FullData data;
-		if(const auto error = Replay::FullDecode(BUFFER_BORROWED{replay_file}, data)) {
+		Replay::FullData replay_data;
+		if(const auto error = Replay::FullDecode(BUFFER_BORROWED{replay_file}, replay_data)) {
 			return SDL_errorf("`%s`: %s\n", fn, error);
 		}
-		auto *game = SSGNew();
-		if(!game) return SDL_fatalf("out of memory\n");
-		defer(game = SSG_Free(game));
-		Replay::Full replay(*game, dat);
-		if(const auto error = replay.Start(data)) return SDL_errorf("`%s`: %s\n", fn, error);
-		for(size_t i = 0; i < data.Records.size(); i++) {
-			if(const auto error = replay.Apply(data.Records[i])) {
-				SDL_Log("`%s`: operation %zu, stage %u: %s", fn, i, game->Stage.Number(), error);
+		auto *ssg = SSGNew();
+		if(!ssg) return SDL_fatalf("out of memory\n");
+		defer(ssg = SSG_Free(ssg));
+		Replay::FullPlayer player(*ssg, dat);
+		if(const auto error = player.Start(replay_data)) return SDL_errorf("`%s`: %s\n", fn, error);
+		for(size_t i = 0; i < replay_data.Records.size(); i++) {
+			if(const auto error = player.ApplyRecord(replay_data.Records[i])) {
+				SDL_Log("`%s`: operation %zu, stage %u: %s", fn, i, ssg->Stage.Number(), error);
 				return REPLAY_CLI_RET::WARN;
 			}
 		}
-		if(!replay.Finished()) return SDL_errorf("`%s`: missing replay end\n", fn);
-		if(!args.quiet) SDL_printf("%s: replay verified, %zu operations\n", fn, data.Records.size());
+		if(!player.IsFinished()) return SDL_errorf("`%s`: missing replay end\n", fn);
+		if(!args.quiet) SDL_printf("%s: replay verified, %zu operations\n", fn, replay_data.Records.size());
 		return REPLAY_CLI_RET::OK;
 	}
 	const auto stage = Replay::OldStageNumDetect(fn_view);
